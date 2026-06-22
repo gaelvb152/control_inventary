@@ -1,2551 +1,2549 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Control de Bandas</title>
-    <script>
-      if (!sessionStorage.getItem("token_rol")) {
-        window.location.href = "index.html"; // Ajustado por si el login está en otra página
-      }
-    </script>
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      :root {
-        --bg: #f2f2f2;
-        --surface: #fff;
-        --border: #e5e5e5;
-        --text: #111;
-        --muted: #737373;
-        --y-bg: #fffbeb;
-        --y-bd: #fcd34d;
-        --y-tx: #92400e;
-        --g-bg: #f0fdf4;
-        --g-bd: #86efac;
-        --g-tx: #166534;
-        --r-bg: #fef2f2;
-        --r-bd: #fca5a5;
-        --r-tx: #991b1b;
-        --b-bg: #eff6ff;
-        --b-bd: #93c5fd;
-        --b-tx: #1e40af;
-      }
-      * {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      }
-      body {
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-      }
-
-      header {
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-      }
-      .hdr {
-        max-width: 1320px;
-        margin: 0 auto;
-        padding: 13px 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 15px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-      }
-      .hdr-r {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .rchip {
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        padding: 4px 10px;
-        border-radius: 20px;
-        background: #111;
-        color: #fff;
-      }
-      .rchip.op {
-        background: #e5e5e5;
-        color: #555;
-      }
-      .user-name {
-        font-size: 12px;
-        color: var(--muted);
-        font-weight: 500;
-      }
-      .btn-exit {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 13px;
-        color: #dc2626;
-        padding: 5px 9px;
-        border-radius: 6px;
-        transition: 0.15s;
-      }
-      .btn-exit:hover {
-        background: #fef2f2;
-      }
-
-      .tabbar {
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-      }
-      .tabbar-in {
-        max-width: 1320px;
-        margin: 0 auto;
-        padding: 0 24px;
-        display: flex;
-        gap: 2px;
-        overflow-x: auto;
-      }
-      .tab {
-        background: none;
-        border: none;
-        padding: 13px 15px;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--muted);
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        transition: 0.15s;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-      }
-      .tab:hover {
-        color: var(--text);
-      }
-      .tab.active {
-        color: var(--text);
-        border-bottom-color: #111;
-      }
-      .bcount {
-        background: #dc2626;
-        color: #fff;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 1px 6px;
-        border-radius: 10px;
-        min-width: 17px;
-        text-align: center;
-        display: none;
-      }
-
-      main {
-        max-width: 1320px;
-        margin: 0 auto;
-        padding: 26px 24px;
-      }
-      .sec {
-        display: none;
-      }
-      .sec.active {
-        display: block;
-        animation: fu 0.22s ease;
-      }
-      @keyframes fu {
-        from {
-          opacity: 0;
-          transform: translateY(7px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 22px;
-        margin-bottom: 18px;
-      }
-      .ctitle {
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        margin-bottom: 16px;
-        text-transform: uppercase;
-        color: #333;
-      }
-
-      /* ESTILOS DE LA BARRA DE FILTROS */
-      .filter-bar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 16px;
-        align-items: center;
-      }
-      .filter-bar select,
-      .filter-bar input[type="date"] {
-        padding: 8px 12px;
-        border: 1px solid #d4d4d4;
-        border-radius: 6px;
-        font-size: 12px;
-        flex: 1;
-        min-width: 140px;
-      }
-      .filter-range {
-        display: none;
-        gap: 10px;
-        flex: 2;
-        min-width: 280px;
-      }
-
-      .fgrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
-        gap: 13px;
-        margin-bottom: 13px;
-      }
-      .fg {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .fg label {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #505050;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      input:not([type="file"]),
-      select,
-      textarea {
-        padding: 9px 11px;
-        border: 1px solid #d4d4d4;
-        border-radius: 6px;
-        font-size: 13px;
-        font-family: inherit;
-        width: 100%;
-        transition: 0.15s;
-        background: #fff;
-        color: #111;
-      }
-      input:focus,
-      select:focus,
-      textarea:focus {
-        outline: none;
-        border-color: #111;
-        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.07);
-      }
-      input[readonly],
-      input[disabled] {
-        background: #f8f8f8;
-        color: #999;
-        cursor: not-allowed;
-      }
-
-      .dropzone {
-        border: 2px dashed #d4d4d4;
-        padding: 18px;
-        text-align: center;
-        border-radius: 8px;
-        background: #fafafa;
-        cursor: pointer;
-        transition: 0.15s;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-      }
-      .dropzone:hover {
-        border-color: #111;
-      }
-      .dropzone.ok {
-        border-color: #16a34a;
-        background: #f0fdf4;
-        border-style: solid;
-      }
-      .dropzone span {
-        font-size: 13px;
-        color: var(--muted);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .dropzone.ok span {
-        color: #16a34a;
-        font-weight: 500;
-      }
-
-      /* AJUSTE PARA LA FIRMA RESPONSIVA */
-      .sig-wrap {
-        border: 1px solid #d4d4d4;
-        border-radius: 8px;
-        overflow: hidden;
-        position: relative;
-        margin-bottom: 5px;
-        height: 50vh; /* Abarca gran parte de la pantalla en celulares */
-        min-height: 250px;
-        max-height: 400px;
-        width: 100%;
-      }
-      canvas.sig {
-        display: block;
-        width: 100%;
-        height: 100%;
-        cursor: crosshair;
-        touch-action: none;
-        background: #fff;
-      }
-      .sig-hint {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: #ccc;
-        font-size: 13px;
-        pointer-events: none;
-        transition: opacity 0.2s;
-      }
-
-      .btn-primary {
-        background: #111;
-        color: #fff;
-        border: none;
-        border-radius: 7px;
-        padding: 12px 20px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.15s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        width: 100%;
-        margin-top: 8px;
-      }
-      .btn-primary:hover {
-        background: #333;
-      }
-      .btn-primary:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-      }
-      .btn-sm {
-        background: none;
-        border: none;
-        font-size: 12px;
-        cursor: pointer;
-        padding: 3px 7px;
-        border-radius: 4px;
-        font-weight: 500;
-        transition: 0.15s;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .btn-sm.red {
-        color: #dc2626;
-      }
-      .btn-sm.red:hover {
-        background: #fef2f2;
-      }
-      .btn-green {
-        background: #16a34a;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.15s;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .btn-green:hover {
-        background: #15803d;
-      }
-      .btn-blue {
-        background: #2563eb;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.15s;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .btn-red {
-        background: #dc2626;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.15s;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-      }
-
-      .sgrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 14px;
-        margin-bottom: 18px;
-      }
-      .scard {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 18px 20px;
-      }
-      .scard .lbl {
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--muted);
-        margin-bottom: 8px;
-      }
-      .scard .val {
-        font-size: 28px;
-        font-weight: 700;
-        line-height: 1;
-      }
-      .val.g {
-        color: #16a34a;
-      }
-      .val.y {
-        color: #d97706;
-      }
-      .val.r {
-        color: #dc2626;
-      }
-
-      /* INVENTORY STOCK CARDS */
-      .inv-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        margin-bottom: 20px;
-      }
-      .inv-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .inv-card .ic-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .inv-card .ic-type {
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .ic-type.nueva {
-        color: #2563eb;
-      }
-      .ic-type.usada {
-        color: #d97706;
-      }
-      .ic-type.danada {
-        color: #dc2626;
-      }
-      .inv-card .ic-stock {
-        font-size: 36px;
-        font-weight: 700;
-        line-height: 1;
-      }
-      .ic-stock.nueva {
-        color: #2563eb;
-      }
-      .ic-stock.usada {
-        color: #d97706;
-      }
-      .ic-stock.danada {
-        color: #dc2626;
-      }
-      .inv-card .ic-sub {
-        font-size: 11px;
-        color: var(--muted);
-      }
-      .ic-actions {
-        display: flex;
-        gap: 6px;
-      }
-      .ic-btn {
-        flex: 1;
-        padding: 7px 0;
-        font-size: 12px;
-        font-weight: 600;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: 0.15s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-      }
-      .ic-btn.in {
-        background: #f0fdf4;
-        color: #16a34a;
-        border: 1px solid #86efac;
-      }
-      .ic-btn.in:hover {
-        background: #dcfce7;
-      }
-      .ic-btn.out {
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1px solid #fca5a5;
-      }
-      .ic-btn.out:hover {
-        background: #fee2e2;
-      }
-
-      /* TABLE */
-      .twrap {
-        overflow-x: auto;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 12px;
-      }
-      thead tr {
-        background: #f5f5f5;
-      }
-      th {
-        padding: 9px 13px;
-        text-align: left;
-        font-weight: 700;
-        font-size: 11px;
-        color: #444;
-        text-transform: uppercase;
-        border-bottom: 1px solid var(--border);
-        white-space: nowrap;
-      }
-      td {
-        padding: 9px 13px;
-        color: #444;
-        border-bottom: 1px solid #f0f0f0;
-        vertical-align: middle;
-      }
-      .chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 20px;
-        letter-spacing: 0.03em;
-      }
-      .chip.p {
-        background: var(--y-bg);
-        color: var(--y-tx);
-      }
-      .chip.a {
-        background: var(--b-bg);
-        color: var(--b-tx);
-      }
-      .chip.c {
-        background: var(--g-bg);
-        color: var(--g-tx);
-      }
-      .chip.r {
-        background: var(--r-bg);
-        color: var(--r-tx);
-      }
-      .chip.nueva {
-        background: var(--b-bg);
-        color: var(--b-tx);
-      }
-      .chip.usada {
-        background: var(--y-bg);
-        color: var(--y-tx);
-      }
-      .chip.danada {
-        background: var(--r-bg);
-        color: var(--r-tx);
-      }
-      .chip.entrada {
-        background: #f0fdf4;
-        color: #15803d;
-      }
-      .chip.salida {
-        background: #fef2f2;
-        color: #b91c1c;
-      }
-      .tthumb {
-        width: 34px;
-        height: 34px;
-        border-radius: 5px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        cursor: pointer;
-        flex-shrink: 0;
-        background: #eee;
-      }
-      .tthumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .empty-td {
-        text-align: center;
-        padding: 32px;
-        color: var(--muted);
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      /* PENDING CARDS */
-      .plist {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .pcard {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 18px;
-        transition: 0.15s;
-      }
-      .pcard:hover {
-        border-color: #ccc;
-      }
-      .pcard-top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-        flex-wrap: wrap;
-      }
-      .pcard-meta .nod {
-        font-size: 18px;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-      }
-      .pcard-meta .sub {
-        font-size: 11px;
-        color: var(--muted);
-        margin-top: 2px;
-      }
-      .pcard-thumbs {
-        display: flex;
-        gap: 7px;
-      }
-      .thumb48 {
-        width: 48px;
-        height: 48px;
-        border-radius: 6px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        cursor: pointer;
-        flex-shrink: 0;
-        background: #eee;
-      }
-      .thumb48 img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .pcard-detail {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-        gap: 8px;
-        margin-bottom: 14px;
-      }
-      .pd {
-        background: #f8f8f8;
-        border-radius: 6px;
-        padding: 9px 11px;
-      }
-      .pd .k {
-        font-size: 10px;
-        color: var(--muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        margin-bottom: 3px;
-      }
-      .pd .v {
-        font-size: 13px;
-        font-weight: 600;
-      }
-      .pcard-acts {
-        display: flex;
-        gap: 7px;
-        flex-wrap: wrap;
-      }
-      .pcard-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 3px 9px;
-        border-radius: 20px;
-        margin-bottom: 12px;
-        text-transform: uppercase;
-      }
-      .pcard-status.p {
-        background: var(--y-bg);
-        border: 1px solid var(--y-bd);
-        color: var(--y-tx);
-      }
-      .pcard-status.a {
-        background: var(--b-bg);
-        border: 1px solid var(--b-bd);
-        color: var(--b-tx);
-      }
-      .pcard-status.c {
-        background: var(--g-bg);
-        border: 1px solid var(--g-bd);
-        color: var(--g-tx);
-      }
-      .pcard-status.r {
-        background: var(--r-bg);
-        border: 1px solid var(--r-bd);
-        color: var(--r-tx);
-      }
-      .pcard-footer {
-        font-size: 11px;
-        color: var(--muted);
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid var(--border);
-        line-height: 1.7;
-      }
-
-      .divider {
-        border: none;
-        border-top: 1px solid var(--border);
-        margin: 22px 0;
-      }
-
-      /* MODALS */
-      .overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
-      .overlay.open {
-        display: flex;
-      }
-      .mbox-img {
-        position: relative;
-        max-width: 900px;
-        width: 100%;
-        background: #111;
-        border-radius: 10px;
-        overflow: hidden;
-      }
-      .mbox-img img {
-        display: block;
-        width: 100%;
-        height: auto;
-        max-height: 85vh;
-        object-fit: contain;
-        background: #ffffff; /* Fondo blanco siempre visible */
-      }
-      .mcls {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(255, 255, 255, 0.15);
-        border: none;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        color: #fff;
-      }
-      .mbox {
-        background: #fff;
-        border-radius: 10px;
-        padding: 26px;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-      .mbox h3 {
-        font-size: 15px;
-        font-weight: 700;
-        margin-bottom: 8px;
-      }
-      .mbox p {
-        font-size: 13px;
-        color: var(--muted);
-        line-height: 1.6;
-        margin-bottom: 20px;
-      }
-      .macts {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        margin-top: 16px;
-      }
-      .btn-cancel {
-        background: none;
-        border: 1px solid #d4d4d4;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-size: 13px;
-        cursor: pointer;
-        color: #555;
-      }
-      .btn-confirm-r {
-        background: #dc2626;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-size: 13px;
-        cursor: pointer;
-        font-weight: 600;
-      }
-      .mbox.sm {
-        max-width: 420px;
-      }
-      .mbox.md {
-        max-width: 480px;
-      }
-
-      /* MOVEMENT MODAL */
-      .mov-type-row {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 14px;
-      }
-      .mov-type-btn {
-        flex: 1;
-        padding: 10px;
-        border-radius: 7px;
-        border: 2px solid #e5e5e5;
-        background: #fafafa;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-      }
-      .mov-type-btn.sel-in {
-        border-color: #16a34a;
-        background: #f0fdf4;
-        color: #15803d;
-      }
-      .mov-type-btn.sel-out {
-        border-color: #dc2626;
-        background: #fef2f2;
-        color: #b91c1c;
-      }
-
-      /* TOAST */
-      .toast-wrap {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        z-index: 9999;
-      }
-      .toast {
-        background: #fff;
-        border-left: 4px solid #111;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-        padding: 13px 17px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        font-size: 13px;
-        font-weight: 500;
-        animation: tsl 0.3s ease;
-        max-width: 310px;
-      }
-      .toast.s {
-        border-left-color: #16a34a;
-      }
-      .toast.e {
-        border-left-color: #dc2626;
-      }
-      .toast.i {
-        border-left-color: #2563eb;
-      }
-      @keyframes tsl {
-        from {
-          transform: translateX(110%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="toast-wrap" id="toastWrap"></div>
-
-    <header>
-      <div class="hdr">
-        <div class="brand">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-          Control de Bandas
-        </div>
-        <div class="hdr-r">
-          <span class="user-name" id="uname"></span>
-          <span class="rchip" id="rchip">Rol</span>
-          <button class="btn-exit" onclick="logout()">Salir</button>
-        </div>
-      </div>
-    </header>
-
-    <div class="tabbar" id="tabbar">
-      <div class="tabbar-in" id="tabsContainer"></div>
-    </div>
-
-    <main>
-      <section id="s-registro" class="sec">
-        <div class="card" style="max-width: 760px; margin: 0 auto 30px auto">
-          <div class="ctitle">1. Solicitar Cambio de Banda</div>
-          <form id="regForm">
-            <div class="fgrid">
-              <div class="fg">
-                <label>Fecha</label><input type="date" id="f_fecha" readonly />
-              </div>
-              <div class="fg">
-                <label>Nodriza</label
-                ><input
-                  type="text"
-                  id="f_nod"
-                  placeholder="Ej. AC2403"
-                  required
-                  autocomplete="off"
-                />
-              </div>
-              <div class="fg">
-                <label>Cant. Bandas a cambiar</label>
-                <input
-                  type="number"
-                  id="f_band"
-                  placeholder="Cantidad"
-                  min="1"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="fg" style="margin-bottom: 14px">
-              <label>Motivo del Cambio / Descripción</label>
-              <textarea
-                id="f_desc"
-                placeholder="Escribe el motivo del cambio (ej. desgaste, ruptura...)"
-                required
-                rows="2"
-              ></textarea>
-            </div>
-
-            <div class="fg" style="margin-bottom: 14px">
-              <label>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-                  ></path>
-                  <circle cx="12" cy="13" r="4"></circle>
-                </svg>
-                Evidencia: Foto de Banda(s) Dañada(s)
-              </label>
-              <div
-                class="dropzone"
-                id="dropZone"
-                onclick="document.getElementById('fotoInput').click()"
-              >
-                <span id="fileLabel"
-                  >Toca para abrir la cámara o seleccionar foto</span
-                >
-                <input
-                  type="file"
-                  id="fotoInput"
-                  accept="image/*"
-                  capture="environment"
-                  style="display: none"
-                  required
-                />
-              </div>
-            </div>
-            <button type="submit" class="btn-primary" id="btnSave">
-              Enviar Solicitud
-            </button>
-          </form>
-        </div>
-
-        <div class="ctitle">Mis Solicitudes Activas</div>
-
-        <div class="filter-bar">
-          <select
-            id="opFilterType"
-            onchange="
-              toggleOpRange();
-              renderSolicitudes();
-            "
-          >
-            <option value="all">Historial Completo (Todas)</option>
-            <option value="day">Día actual</option>
-            <option value="week">Últimos 7 días</option>
-            <option value="month">Último mes</option>
-            <option value="range">Rango de fechas...</option>
-          </select>
-          <div class="filter-range" id="opFilterRange">
-            <input
-              type="date"
-              id="opDateStart"
-              onchange="renderSolicitudes()"
-              title="Fecha de inicio"
-            />
-            <input
-              type="date"
-              id="opDateEnd"
-              onchange="renderSolicitudes()"
-              title="Fecha fin"
-            />
-          </div>
-        </div>
-
-        <div class="plist" id="misSolicitudesList">
-          <p class="empty-td">Cargando información desde la nube...</p>
-        </div>
-      </section>
-
-      <section id="s-autorizaciones" class="sec">
-        <div id="pendSec">
-          <div class="ctitle" style="margin-bottom: 12px">
-            Pendientes de Autorización
-          </div>
-          <div class="plist" id="pendList">
-            <p class="empty-td">Cargando información desde la nube...</p>
-          </div>
-        </div>
-        <hr class="divider" id="histDiv" style="display: none" />
-        <div id="authHist" style="display: none">
-          <div class="ctitle" style="margin-bottom: 12px">
-            Historial de Autorizaciones
-          </div>
-          <div class="plist" id="authHistList"></div>
-        </div>
-      </section>
-
-      <section id="s-inventario" class="sec">
-        <div class="ctitle" style="margin-bottom: 14px">
-          Stock Actual de Bandas
-        </div>
-        <div class="inv-grid">
-          <div class="inv-card">
-            <div class="ic-head">
-              <span class="ic-type nueva">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  stroke="none"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                </svg>
-                Nuevas
-              </span>
-              <span
-                style="font-size: 11px; color: var(--muted)"
-                id="inv-nueva-mov"
-                >0 movs</span
-              >
-            </div>
-            <div>
-              <div class="ic-stock nueva" id="inv-nueva-stock">0</div>
-              <div class="ic-sub" id="inv-nueva-sub">unidades disponibles</div>
-            </div>
-            <div class="ic-actions">
-              <button class="ic-btn in" onclick="openMov('nueva', 'entrada')">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="12" y1="19" x2="12" y2="5"></line>
-                  <polyline points="5 12 12 5 19 12"></polyline>
-                </svg>
-                Entrada</button
-              ><button class="ic-btn out" onclick="openMov('nueva', 'salida')">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <polyline points="19 12 12 19 5 12"></polyline>
-                </svg>
-                Salida
-              </button>
-            </div>
-          </div>
-          <div class="inv-card">
-            <div class="ic-head">
-              <span class="ic-type usada">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  stroke="none"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                </svg>
-                Usadas con Vida Útil
-              </span>
-              <span
-                style="font-size: 11px; color: var(--muted)"
-                id="inv-usada-mov"
-                >0 movs</span
-              >
-            </div>
-            <div>
-              <div class="ic-stock usada" id="inv-usada-stock">0</div>
-              <div class="ic-sub" id="inv-usada-sub">unidades disponibles</div>
-            </div>
-            <div class="ic-actions">
-              <button class="ic-btn in" onclick="openMov('usada', 'entrada')">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="12" y1="19" x2="12" y2="5"></line>
-                  <polyline points="5 12 12 5 19 12"></polyline>
-                </svg>
-                Entrada</button
-              ><button class="ic-btn out" onclick="openMov('usada', 'salida')">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <polyline points="19 12 12 19 5 12"></polyline>
-                </svg>
-                Salida
-              </button>
-            </div>
-          </div>
-          <div class="inv-card">
-            <div class="ic-head">
-              <span class="ic-type danada">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  stroke="none"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                </svg>
-                Dañadas
-              </span>
-              <span
-                style="font-size: 11px; color: var(--muted)"
-                id="inv-danada-mov"
-                >0 movs</span
-              >
-            </div>
-            <div>
-              <div class="ic-stock danada" id="inv-danada-stock">0</div>
-              <div class="ic-sub" id="inv-danada-sub">unidades registradas</div>
-            </div>
-            <div class="ic-actions">
-              <button class="ic-btn in" onclick="openMov('danada', 'entrada')">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="12" y1="19" x2="12" y2="5"></line>
-                  <polyline points="5 12 12 5 19 12"></polyline>
-                </svg>
-                Entrada</button
-              ><button class="ic-btn out" onclick="openMov('danada', 'salida')">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <polyline points="19 12 12 19 5 12"></polyline>
-                </svg>
-                Salida
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="ctitle">Historial de Movimientos de Stock</div>
-          <div class="twrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fecha y Hora</th>
-                  <th>Tipo</th>
-                  <th>Movimiento</th>
-                  <th>Cantidad</th>
-                  <th>Motivo / Referencia</th>
-                  <th>Evidencia</th>
-                  <th>Registrado por</th>
-                </tr>
-              </thead>
-              <tbody id="movBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="s-historial" class="sec">
-        <div class="ctitle" style="margin-bottom: 10px">
-          Filtros de Historial
-        </div>
-
-        <div class="filter-bar">
-          <select
-            id="admFilterType"
-            onchange="
-              toggleAdmRange();
-              renderHistorial();
-            "
-          >
-            <option value="all">Historial Completo (Todas)</option>
-            <option value="day">Día actual</option>
-            <option value="week">Últimos 7 días</option>
-            <option value="month">Último mes</option>
-            <option value="range">Rango de fechas...</option>
-          </select>
-          <div class="filter-range" id="admFilterRange">
-            <input
-              type="date"
-              id="admDateStart"
-              onchange="renderHistorial()"
-              title="Fecha de inicio"
-            />
-            <input
-              type="date"
-              id="admDateEnd"
-              onchange="renderHistorial()"
-              title="Fecha fin"
-            />
-          </div>
-        </div>
-
-        <div class="sgrid" id="statsRow"></div>
-        <div class="card">
-          <div class="ctitle">Historial Completo de Cambios</div>
-          <div class="twrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Operador</th>
-                  <th>Nodriza</th>
-                  <th>Motivo</th>
-                  <th>Bandas</th>
-                  <th>Tipo</th>
-                  <th>Estado</th>
-                  <th>Quien Entrega</th>
-                  <th>Atendido por</th>
-                  <th>Evidencia</th>
-                  <th>Firma</th>
-                </tr>
-              </thead>
-              <tbody id="tBody">
-                <tr>
-                  <td colspan="11" class="empty-td">
-                    Sincronizando con Firebase...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <div class="overlay" id="imgOverlay" onclick="closeImg()">
-      <div class="mbox-img" onclick="event.stopPropagation()">
-        <img id="imgBig" src="" alt="" />
-        <button class="mcls" onclick="closeImg()">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="overlay" id="authTypeOverlay">
-      <div class="mbox sm">
-        <h3>Autorizar Solicitud</h3>
-        <p style="margin-bottom: 15px">
-          Confirma la autorización de esta solicitud. El tipo de banda será
-          asignado por el operador al momento de la entrega.
-        </p>
-        <div class="macts">
-          <button class="btn-cancel" onclick="closeAuthType()">Cancelar</button>
-          <button class="btn-green" onclick="confirmAuthorize()">
-            Autorizar
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL REGISTRO DE MOVIMIENTO MODIFICADO -->
-    <div class="overlay" id="movOverlay">
-      <div class="mbox md">
-        <h3 id="movTitle">Registrar Movimiento</h3>
-        <div class="mov-type-row" id="movTypeRow">
-          <div
-            class="mov-type-btn sel-in"
-            id="movBtnIn"
-            onclick="selMovType('entrada')"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="12" y1="19" x2="12" y2="5"></line>
-              <polyline points="5 12 12 5 19 12"></polyline>
-            </svg>
-            Entrada
-          </div>
-          <div
-            class="mov-type-btn"
-            id="movBtnOut"
-            onclick="selMovType('salida')"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <polyline points="19 12 12 19 5 12"></polyline>
-            </svg>
-            Salida
-          </div>
-        </div>
-        <div
-          class="fgrid"
-          style="grid-template-columns: 1fr 1fr; margin-bottom: 12px"
-        >
-          <div class="fg">
-            <label>Cantidad</label>
-            <input type="number" id="movQty" min="1" placeholder="0" />
-          </div>
-          <div class="fg">
-            <label>Tipo de Banda</label>
-            <select id="movTipo" onchange="checkMovRequirements()">
-              <option value="nueva">Nueva</option>
-              <option value="usada">Usada con vida útil</option>
-              <option value="danada">Dañada</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="fg" style="margin-bottom: 14px">
-          <label>Motivo / Referencia</label>
-          <input
-            type="text"
-            id="movReason"
-            placeholder="Ej. Compra proveedor, merma, traslado..."
-          />
-        </div>
-
-        <!-- RECUADRO DE EVIDENCIA (Oculto por defecto, se muestra solo en Entrada de Nuevas) -->
-        <div
-          class="fg"
-          id="movEvidenceGroup"
-          style="display: none; margin-bottom: 14px"
-        >
-          <label>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-              ></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            Factura o Ticket de Compra
-          </label>
-          <div
-            class="dropzone"
-            id="dzMov"
-            onclick="document.getElementById('movFotoInput').click()"
-          >
-            <span id="lblMov">Toca para subir factura o ticket</span>
-            <input
-              type="file"
-              id="movFotoInput"
-              accept="image/*"
-              capture="environment"
-              style="display: none"
-            />
-          </div>
-        </div>
-
-        <div class="macts">
-          <button class="btn-cancel" onclick="closeMov()">Cancelar</button>
-          <button class="btn-green" id="movConfirmBtn" onclick="saveMov()">
-            Guardar Movimiento
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="overlay" id="rejectOverlay">
-      <div class="mbox sm">
-        <h3>Motivo de Rechazo</h3>
-        <textarea
-          id="rejectReason"
-          style="
-            width: 100%;
-            min-height: 80px;
-            resize: vertical;
-            padding: 9px;
-            border: 1px solid #d4d4d4;
-            border-radius: 6px;
-            font-size: 13px;
-          "
-          placeholder="Escribe el motivo (opcional)..."
-        ></textarea>
-        <div class="macts">
-          <button class="btn-cancel" onclick="closeReject()">Cancelar</button>
-          <button class="btn-confirm-r" onclick="confirmReject()">
-            Rechazar
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="overlay" id="completeOverlay">
-      <div class="mbox md">
-        <div id="step1Delivery">
-          <h3>Completar Entrega (1/2)</h3>
-          <p style="margin-bottom: 15px">
-            Selecciona el tipo de banda recibida y sube la evidencia
-            fotográfica.
-          </p>
-
-          <div class="fg" style="margin-bottom: 15px">
-            <label>Tipo de Banda Recibida</label>
-            <select id="recTipoBanda">
-              <option value="nueva">Nueva</option>
-              <option value="usada">Usada con vida útil</option>
-            </select>
-          </div>
-
-          <div class="fg" style="margin-bottom: 25px">
-            <label>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-                ></path>
-                <circle cx="12" cy="13" r="4"></circle>
-              </svg>
-              Evidencia: Foto de Banda Recibida
-            </label>
-            <div
-              class="dropzone"
-              id="dzRecibida"
-              onclick="document.getElementById('f_foto_recibida').click()"
-            >
-              <span id="lblRecibida">Toca para abrir cámara</span>
-              <input
-                type="file"
-                id="f_foto_recibida"
-                accept="image/*"
-                capture="environment"
-                style="display: none"
-              />
-            </div>
-          </div>
-
-          <div class="macts">
-            <button class="btn-cancel" onclick="closeCompleteDelivery()">
-              Cancelar
-            </button>
-            <button class="btn-blue" onclick="nextCompleteStep()">
-              Siguiente
-            </button>
-          </div>
-        </div>
-
-        <div id="step2Delivery" style="display: none">
-          <h3>Firma de Conformidad (2/2)</h3>
-          <p style="margin-bottom: 10px">
-            Traza tu firma en el recuadro. Al confirmar, se descontará del
-            inventario de forma automática.
-          </p>
-
-          <div class="fg">
-            <div
-              style="
-                display: flex;
-                justify-content: flex-end;
-                margin-bottom: 5px;
-              "
-            >
-              <button class="btn-sm red" onclick="clearSig()">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-                Borrar
-              </button>
-            </div>
-            <div class="sig-wrap">
-              <span class="sig-hint" id="sigHint">Dibuja tu firma aquí</span>
-              <canvas id="sigCanvas" class="sig"></canvas>
-            </div>
-          </div>
-
-          <div class="macts">
-            <button class="btn-cancel" onclick="prevCompleteStep()">
-              Atrás
-            </button>
-            <button
-              class="btn-green"
-              id="btnConfirmDelivery"
-              onclick="saveCompleteDelivery()"
-            >
-              Confirmar Recepción
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script type="module">
-      import {
-        auth,
-        db,
-        signOut,
-        onAuthStateChanged,
-        ref,
-        set,
-        onValue,
-      } from "./conexion.js";
-
-      let currentUser = null;
-      let DB = [];
-      let MOVS = [];
-      const ROL = sessionStorage.getItem("token_rol");
-      const UNAME = sessionStorage.getItem("user_name") || "Usuario";
-      document.getElementById("uname").textContent = UNAME;
-      const rchip = document.getElementById("rchip");
-      rchip.textContent = ROL ? ROL.toUpperCase() : "OPERADOR";
-      if (ROL === "operador") rchip.classList.add("op");
-
-      async function logout() {
-        await signOut(auth);
-        sessionStorage.clear();
-        window.location.href = "index.html";
-      }
-
-      function toast(msg, type = "i") {
-        const c = document.getElementById("toastWrap"),
-          t = document.createElement("div");
-        t.className = "toast " + type;
-        const ic = {
-          s: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>',
-          e: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/></svg>',
-          i: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-        };
-        t.innerHTML = (ic[type] || ic.i) + `<span>${msg}</span>`;
-        c.appendChild(t);
-        setTimeout(() => {
-          t.style.opacity = "0";
-          t.style.transition = "opacity .3s";
-          setTimeout(() => t.remove(), 300);
-        }, 3500);
-      }
-
-      function renderTabs() {
-        const tc = document.getElementById("tabsContainer");
-        if (ROL === "operador")
-          tc.innerHTML = `<button class="tab active" onclick="switchTab('registro', this)">Mis Solicitudes de Cambio</button>`;
-        else
-          tc.innerHTML = `<button class="tab active" onclick="switchTab('autorizaciones', this)">Autorizaciones <span class="bcount" id="bcount">0</span></button><button class="tab" onclick="switchTab('inventario', this)">Inventario de Stock</button><button class="tab" onclick="switchTab('historial', this)">Historial de Cambios</button>`;
-        switchTab(
-          ROL === "operador" ? "registro" : "autorizaciones",
-          tc.firstElementChild,
-        );
-      }
-
-      function switchTab(name, btn) {
-        document
-          .querySelectorAll(".sec")
-          .forEach((s) => s.classList.remove("active"));
-        document
-          .querySelectorAll(".tab")
-          .forEach((b) => b.classList.remove("active"));
-        document.getElementById("s-" + name).classList.add("active");
-        if (btn) btn.classList.add("active");
-        if (name === "registro") renderSolicitudes();
-        if (name === "autorizaciones") {
-          renderAuthPage();
-          updateBadge();
-        }
-        if (name === "inventario") renderInventario();
-        if (name === "historial") renderHistorial();
-      }
-
-      // LÓGICA DE FILTRADO POR FECHA REUTILIZABLE
-      function filterByDate(dataList, filterType, startDate, endDate) {
-        if (!filterType || filterType === "all") return dataList;
-
-        const getLocalYMD = (d) => {
-          const dt = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-          return dt.toISOString().split("T")[0];
-        };
-
-        const now = new Date();
-        const todayStr = getLocalYMD(now);
-
-        const weekAgo = new Date(now);
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        const weekAgoStr = getLocalYMD(weekAgo);
-
-        const monthAgo = new Date(now);
-        monthAgo.setMonth(monthAgo.getMonth() - 1);
-        const monthAgoStr = getLocalYMD(monthAgo);
-
-        return dataList.filter((r) => {
-          const dStr = r.fecha; // Ya viene en formato YYYY-MM-DD
-          if (!dStr) return false;
-
-          if (filterType === "day") return dStr === todayStr;
-          if (filterType === "week")
-            return dStr >= weekAgoStr && dStr <= todayStr;
-          if (filterType === "month")
-            return dStr >= monthAgoStr && dStr <= todayStr;
-          if (filterType === "range") {
-            if (startDate && endDate)
-              return dStr >= startDate && dStr <= endDate;
-            if (startDate) return dStr >= startDate;
-            if (endDate) return dStr <= endDate;
-            return true;
-          }
-          return true;
-        });
-      }
-
-      function toggleOpRange() {
-        const type = document.getElementById("opFilterType").value;
-        document.getElementById("opFilterRange").style.display =
-          type === "range" ? "flex" : "none";
-      }
-
-      function toggleAdmRange() {
-        const type = document.getElementById("admFilterType").value;
-        document.getElementById("admFilterRange").style.display =
-          type === "range" ? "flex" : "none";
-      }
-
-      // FIREBASE RTDB LISTENERS
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          currentUser = user;
-          setupRealtimeListeners();
-        } else {
-          logout();
-        }
-      });
-
-      function setupRealtimeListeners() {
-        onValue(ref(db, "requests"), (snapshot) => {
-          const data = snapshot.val();
-          DB = data ? Object.values(data) : [];
-          if (ROL === "operador") renderSolicitudes();
-          if (ROL === "admin") {
-            renderAuthPage();
-            updateBadge();
-            renderHistorial();
-          }
-        });
-        if (ROL === "admin") {
-          onValue(ref(db, "inventory_movs"), (snapshot) => {
-            const data = snapshot.val();
-            MOVS = data ? Object.values(data) : [];
-            renderInventario();
-          });
-        }
-      }
-
-      // LISTENER FOTOS DE SOLICITUD
-      document
-        .getElementById("fotoInput")
-        .addEventListener("change", function () {
-          const dz = document.getElementById("dropZone"),
-            lbl = document.getElementById("fileLabel");
-          if (this.files.length) {
-            dz.classList.add("ok");
-            lbl.innerHTML =
-              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> ' +
-              this.files[0].name;
-          } else resetFoto();
-        });
-
-      // LISTENER FOTOS DE RECEPCIÓN
-      document
-        .getElementById("f_foto_recibida")
-        .addEventListener("change", function () {
-          const dz = document.getElementById("dzRecibida"),
-            lbl = document.getElementById("lblRecibida");
-          if (this.files.length) {
-            dz.classList.add("ok");
-            lbl.innerHTML =
-              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> ' +
-              this.files[0].name;
-          } else {
-            dz.classList.remove("ok");
-            lbl.textContent = "Toca para abrir cámara";
-            this.value = "";
-          }
-        });
-
-      // LISTENER FOTO DE EVIDENCIA MOVIMIENTO
-      document
-        .getElementById("movFotoInput")
-        .addEventListener("change", function () {
-          const dz = document.getElementById("dzMov"),
-            lbl = document.getElementById("lblMov");
-          if (this.files.length) {
-            dz.classList.add("ok");
-            lbl.innerHTML =
-              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> ' +
-              this.files[0].name;
-          } else {
-            resetMovFoto();
-          }
-        });
-
-      function resetFoto() {
-        document.getElementById("dropZone").classList.remove("ok");
-        document.getElementById("fileLabel").textContent =
-          "Toca para abrir la cámara o seleccionar foto";
-        document.getElementById("fotoInput").value = "";
-      }
-      function resetMovFoto() {
-        document.getElementById("dzMov").classList.remove("ok");
-        document.getElementById("lblMov").textContent =
-          "Toca para subir factura o ticket";
-        document.getElementById("movFotoInput").value = "";
-      }
-
-      function compress(file, cb) {
-        const fr = new FileReader();
-        fr.readAsDataURL(file);
-        fr.onload = (ev) => {
-          const img = new Image();
-          img.src = ev.target.result;
-          img.onload = () => {
-            const mw = 600,
-              sc = mw / img.width,
-              c = document.createElement("canvas");
-            c.width = mw;
-            c.height = img.height * sc;
-            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-            cb(c.toDataURL("image/jpeg", 0.65));
-          };
-        };
-      }
-
-      // 1. SOLICITAR
-      document
-        .getElementById("regForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const fi = document.getElementById("fotoInput");
-          if (!fi.files.length)
-            return toast("Sube la fotografía de la banda dañada.", "e");
-          const btn = document.getElementById("btnSave");
-          btn.disabled = true;
-          btn.textContent = "Guardando en Firebase...";
-
-          compress(fi.files[0], async (fotoBase64) => {
-            const reqData = {
-              id: Date.now(),
-              fecha: document.getElementById("f_fecha").value,
-              creado: new Date().toISOString(),
-              operador: UNAME,
-              nodriza: document
-                .getElementById("f_nod")
-                .value.trim()
-                .toUpperCase(),
-              descripcion: document.getElementById("f_desc").value.trim(),
-              bandas: parseInt(document.getElementById("f_band").value) || 0,
-              estado: "pendiente",
-              foto: fotoBase64,
-              tipo_banda: null,
-              entrega: null,
-              firma: null,
-              foto_entregada: null,
-              auth_por: null,
-              auth_fecha: null,
-              rechazo_motivo: null,
-            };
-
-            try {
-              await set(ref(db, "requests/" + reqData.id), reqData);
-              toast("Solicitud enviada a autorización.", "s");
-              this.reset();
-              resetFoto();
-              setToday();
-            } catch (error) {
-              console.error(error);
-              toast("Error de conexión con la Nube.", "e");
-            } finally {
-              btn.disabled = false;
-              btn.textContent = "Enviar Solicitud a la Nube";
-            }
-          });
-        });
-
-      const tipoLabel = {
-        nueva: "Nueva",
-        usada: "Usada con vida útil",
-        danada: "Dañada",
-      };
-      function fmtDT(d) {
-        try {
-          return new Date(d).toLocaleString("es-MX", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        } catch (e) {
-          return d;
-        }
-      }
-      function esc(s) {
-        return String(s ?? "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
-
-      function buildPCard(r, role) {
-        const smap = {
-          pendiente: { cls: "p", lbl: "Pendiente" },
-          autorizado: { cls: "a", lbl: "Autorizado (Esperando Firma)" },
-          completado: { cls: "c", lbl: "Completado" },
-          rechazado: { cls: "r", lbl: "Rechazado" },
-        };
-        const s = smap[r.estado] || smap.pendiente;
-        let acts = "";
-        if (role === "admin" && r.estado === "pendiente") {
-          acts = `<div class="pcard-acts"><button class="btn-green" onclick="openAuthType(${r.id})">Autorizar</button><button class="btn-red" onclick="openReject(${r.id})">Rechazar</button></div>`;
-        } else if (role === "operador" && r.estado === "autorizado") {
-          acts = `<div class="pcard-acts"><button class="btn-blue" onclick="openCompleteDelivery(${r.id})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Recibir y Firmar</button></div>`;
-        }
-        let footer = "";
-        if (r.auth_por) {
-          const statusIcon =
-            r.estado === "rechazado"
-              ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-bottom: 2px;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> Rechazado'
-              : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-bottom: 2px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Autorizado';
-          footer = `<div class="pcard-footer">${statusIcon} por <strong>${esc(r.auth_por)}</strong> — ${fmtDT(r.auth_fecha)}${r.entrega ? `<br>Quien entrega: <strong>${esc(r.entrega)}</strong>` : ""}${r.rechazo_motivo ? `<br>Motivo de rechazo: <em style="color:#dc2626">${esc(r.rechazo_motivo)}</em>` : ""}</div>`;
-        }
-        return `<div class="pcard"><div class="pcard-top"><div class="pcard-meta"><div class="nod">${esc(r.nodriza)} <span style="font-size:14px;color:#555">(${r.bandas} unid.)</span></div><div class="sub">${esc(r.fecha)} · Operador: ${esc(r.operador)}</div>${r.descripcion ? `<div class="sub" style="margin-top:4px;"><strong>Motivo:</strong> <em>${esc(r.descripcion)}</em></div>` : ""}</div><div class="pcard-thumbs"><div class="thumb48" onclick="openImg('${r.foto}')"><img src="${r.foto}" title="Dañada"/></div>${r.foto_entregada ? `<div class="thumb48" onclick="openImg('${r.foto_entregada}')"><img src="${r.foto_entregada}" title="Entregada"/></div>` : ""}${r.firma ? `<div class="thumb48" onclick="openImg('${r.firma}')"><img src="${r.firma}" title="Firma"/></div>` : ""}</div></div><div class="pcard-status ${s.cls}">${s.lbl}</div><div class="pcard-detail">${r.tipo_banda ? `<div class="pd"><div class="k">Tipo Asignado</div><div class="v">${tipoLabel[r.tipo_banda] || r.tipo_banda}</div></div>` : ""}</div>${acts}${footer}</div>`;
-      }
-
-      function renderSolicitudes() {
-        if (ROL !== "operador") return;
-
-        let myReqs = DB.filter((r) => r.operador === UNAME);
-
-        // Obtener valores de los filtros
-        const fType = document.getElementById("opFilterType").value;
-        const fStart = document.getElementById("opDateStart").value;
-        const fEnd = document.getElementById("opDateEnd").value;
-
-        // Aplicar el filtro por fecha
-        myReqs = filterByDate(myReqs, fType, fStart, fEnd);
-
-        myReqs.sort((a, b) => b.id - a.id);
-
-        document.getElementById("misSolicitudesList").innerHTML = myReqs.length
-          ? myReqs.map((r) => buildPCard(r, "operador")).join("")
-          : "<p class='empty-td'>No se encontraron solicitudes en este periodo.</p>";
-      }
-
-      // 2. ADMIN AUTORIZA
-      let currentAuthId = null;
-      function renderAuthPage() {
-        const pend = DB.filter((r) => r.estado === "pendiente").sort(
-          (a, b) => a.id - b.id,
-        );
-        const hist = DB.filter((r) => r.estado !== "pendiente").sort(
-          (a, b) => b.id - a.id,
-        );
-        document.getElementById("pendList").innerHTML = pend.length
-          ? pend.map((r) => buildPCard(r, "admin")).join("")
-          : '<div class="empty-td"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Sin pendientes de autorización</div>';
-        const histDiv = document.getElementById("histDiv"),
-          authHist = document.getElementById("authHist");
-        if (hist.length) {
-          histDiv.style.display = "block";
-          authHist.style.display = "block";
-          document.getElementById("authHistList").innerHTML = hist
-            .map((r) => buildPCard(r, "admin"))
-            .join("");
-        } else {
-          histDiv.style.display = "none";
-          authHist.style.display = "none";
-        }
-      }
-      function updateBadge() {
-        const n = DB.filter((r) => r.estado === "pendiente").length;
-        const b = document.getElementById("bcount");
-        b.textContent = n;
-        b.style.display = n ? "inline-block" : "none";
-      }
-
-      function openAuthType(id) {
-        currentAuthId = id;
-        document.getElementById("authTypeOverlay").classList.add("open");
-      }
-      function closeAuthType() {
-        document.getElementById("authTypeOverlay").classList.remove("open");
-        currentAuthId = null;
-      }
-      async function confirmAuthorize() {
-        const rec = DB.find((r) => r.id === currentAuthId);
-        if (rec) {
-          rec.estado = "autorizado";
-          rec.auth_por = UNAME;
-          rec.auth_fecha = new Date().toISOString();
-          rec.entrega = UNAME;
-          await set(ref(db, "requests/" + rec.id), rec);
-          toast("Autorizado en la nube. Esperando firma.", "s");
-        }
-        closeAuthType();
-      }
-      function openReject(id) {
-        currentAuthId = id;
-        document.getElementById("rejectReason").value = "";
-        document.getElementById("rejectOverlay").classList.add("open");
-      }
-      function closeReject() {
-        document.getElementById("rejectOverlay").classList.remove("open");
-        currentAuthId = null;
-      }
-      async function confirmReject() {
-        const rec = DB.find((r) => r.id === currentAuthId);
-        if (rec) {
-          rec.estado = "rechazado";
-          rec.auth_por = UNAME;
-          rec.auth_fecha = new Date().toISOString();
-          rec.rechazo_motivo =
-            document.getElementById("rejectReason").value.trim() || null;
-          await set(ref(db, "requests/" + rec.id), rec);
-          toast("Solicitud rechazada.", "i");
-        }
-        closeReject();
-      }
-
-      // 3. OPERADOR RECIBE - FLUJO EN DOS PASOS
-      let currentCompleteId = null;
-      const sigCanvas = document.getElementById("sigCanvas"),
-        sigCtx = sigCanvas.getContext("2d");
-      let drawing = false;
-
-      function resizeSig() {
-        const r = sigCanvas.parentElement.getBoundingClientRect();
-        sigCanvas.width = r.width;
-        sigCanvas.height = r.height;
-
-        sigCtx.fillStyle = "#ffffff";
-        sigCtx.fillRect(0, 0, sigCanvas.width, sigCanvas.height);
-
-        sigCtx.strokeStyle = "#111";
-        sigCtx.lineWidth = 3;
-        sigCtx.lineCap = "round";
-        sigCtx.lineJoin = "round";
-      }
-
-      function sigPos(e) {
-        const r = sigCanvas.getBoundingClientRect();
-        const cx = e.touches ? e.touches[0].clientX : e.clientX;
-        const cy = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: cx - r.left, y: cy - r.top };
-      }
-      function startDraw(e) {
-        drawing = true;
-        document.getElementById("sigHint").style.opacity = "0";
-        sigCtx.beginPath();
-        const p = sigPos(e);
-        sigCtx.moveTo(p.x, p.y);
-      }
-      sigCanvas.addEventListener("mousedown", startDraw);
-      sigCanvas.addEventListener("mousemove", (e) => {
-        if (drawing) {
-          const p = sigPos(e);
-          sigCtx.lineTo(p.x, p.y);
-          sigCtx.stroke();
-        }
-      });
-      sigCanvas.addEventListener("mouseup", () => (drawing = false));
-      sigCanvas.addEventListener("mouseleave", () => (drawing = false));
-      sigCanvas.addEventListener(
-        "touchstart",
-        (e) => {
-          e.preventDefault();
-          startDraw(e);
-        },
-        { passive: false },
-      );
-      sigCanvas.addEventListener(
-        "touchmove",
-        (e) => {
-          if (drawing) {
-            e.preventDefault();
-            const p = sigPos(e);
-            sigCtx.lineTo(p.x, p.y);
-            sigCtx.stroke();
-          }
-        },
-        { passive: false },
-      );
-      sigCanvas.addEventListener("touchend", () => (drawing = false));
-
-      function clearSig() {
-        sigCtx.fillStyle = "#ffffff";
-        sigCtx.fillRect(0, 0, sigCanvas.width, sigCanvas.height);
-        document.getElementById("sigHint").style.opacity = "1";
-      }
-
-      function isSigBlank() {
-        const b = document.createElement("canvas");
-        b.width = sigCanvas.width;
-        b.height = sigCanvas.height;
-        const ctx = b.getContext("2d");
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, b.width, b.height);
-        return sigCanvas.toDataURL() === b.toDataURL();
-      }
-
-      function nextCompleteStep() {
-        const fi = document.getElementById("f_foto_recibida");
-        if (!fi.files.length) {
-          return toast("Sube la foto de la banda recibida primero.", "e");
-        }
-        document.getElementById("step1Delivery").style.display = "none";
-        document.getElementById("step2Delivery").style.display = "block";
-        setTimeout(resizeSig, 50);
-      }
-
-      function prevCompleteStep() {
-        document.getElementById("step2Delivery").style.display = "none";
-        document.getElementById("step1Delivery").style.display = "block";
-      }
-
-      function openCompleteDelivery(id) {
-        currentCompleteId = id;
-        document.getElementById("step1Delivery").style.display = "block";
-        document.getElementById("step2Delivery").style.display = "none";
-        document.getElementById("completeOverlay").classList.add("open");
-      }
-
-      function closeCompleteDelivery() {
-        document.getElementById("completeOverlay").classList.remove("open");
-        currentCompleteId = null;
-        clearSig();
-        document.getElementById("dzRecibida").classList.remove("ok");
-        document.getElementById("lblRecibida").textContent =
-          "Toca para abrir cámara";
-        document.getElementById("f_foto_recibida").value = "";
-      }
-
-      function saveCompleteDelivery() {
-        const fi = document.getElementById("f_foto_recibida");
-        if (!fi.files.length)
-          return toast("Sube la foto de la banda recibida", "e");
-        if (isSigBlank()) return toast("Debes firmar de conformidad", "e");
-
-        const btn = document.getElementById("btnConfirmDelivery");
-        const btnText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = "Sincronizando con la Nube...";
-
-        compress(fi.files[0], async (fotoBase64) => {
-          const firmaBase64 = sigCanvas.toDataURL("image/jpeg", 0.8);
-
-          const rec = DB.find((r) => r.id === currentCompleteId);
-          if (rec) {
-            rec.estado = "completado";
-            rec.tipo_banda = document.getElementById("recTipoBanda").value;
-            rec.foto_entregada = fotoBase64;
-            rec.firma = firmaBase64;
-
-            const movId = Date.now() + Math.floor(Math.random() * 1000);
-            const outMov = {
-              id: movId,
-              tipo: rec.tipo_banda,
-              dir: "salida",
-              qty: rec.bandas,
-              reason: `Entrega automática a nodriza ${rec.nodriza} (Sol. #${rec.id})`,
-              por: UNAME,
-              fecha: new Date().toISOString(),
-            };
-
-            try {
-              await set(ref(db, "requests/" + rec.id), rec);
-              await set(ref(db, "inventory_movs/" + movId), outMov);
-              toast(
-                "Proceso completado exitosamente y descontado de stock",
-                "s",
-              );
-            } catch (e) {
-              toast("Error al guardar en la nube.", "e");
-            }
-          }
-          btn.disabled = false;
-          btn.textContent = btnText;
-          closeCompleteDelivery();
-        });
-      }
-
-      // INVENTARIO Y MOVIMIENTOS
-      let movTipoSel = "nueva",
-        movDirSel = "entrada";
-
-      function checkMovRequirements() {
-        const tipo = document.getElementById("movTipo").value;
-        const eg = document.getElementById("movEvidenceGroup");
-        if (tipo === "nueva" && movDirSel === "entrada") {
-          eg.style.display = "flex";
-        } else {
-          eg.style.display = "none";
-        }
-      }
-
-      function openMov(tipo, dir) {
-        movTipoSel = tipo;
-        movDirSel = dir;
-        document.getElementById("movTitle").textContent =
-          (dir === "entrada" ? "Registrar Entrada" : "Registrar Salida") +
-          " de Stock";
-        document.getElementById("movTipo").value = tipo;
-        document.getElementById("movQty").value = "";
-        document.getElementById("movReason").value = "";
-        resetMovFoto();
-        selMovType(dir);
-        document.getElementById("movOverlay").classList.add("open");
-      }
-
-      function closeMov() {
-        document.getElementById("movOverlay").classList.remove("open");
-      }
-
-      function selMovType(dir) {
-        movDirSel = dir;
-        const bi = document.getElementById("movBtnIn"),
-          bo = document.getElementById("movBtnOut");
-        bi.className = "mov-type-btn" + (dir === "entrada" ? " sel-in" : "");
-        bo.className = "mov-type-btn" + (dir === "salida" ? " sel-out" : "");
-        document.getElementById("movConfirmBtn").className =
-          dir === "entrada" ? "btn-green" : "btn-red";
-        document.getElementById("movConfirmBtn").textContent =
-          dir === "entrada" ? "Guardar Entrada" : "Guardar Salida";
-        checkMovRequirements();
-      }
-
-      function calcStock(tipo) {
-        return MOVS.filter((m) => m.tipo === tipo).reduce(
-          (s, m) => (m.dir === "entrada" ? s + m.qty : s - m.qty),
-          0,
-        );
-      }
-
-      async function saveMov() {
-        const qty = parseInt(document.getElementById("movQty").value) || 0;
-        const tipo = document.getElementById("movTipo").value;
-        const reason = document.getElementById("movReason").value.trim();
-
-        if (!qty || qty < 1) return toast("Ingresa una cantidad válida.", "e");
-
-        const stock = calcStock(tipo);
-        if (movDirSel === "salida" && qty > stock)
-          return toast("Stock insuficiente. Disponible: " + stock, "e");
-
-        const btn = document.getElementById("movConfirmBtn");
-        const btnText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = "Guardando...";
-
-        const executeSave = async (evidenciaBase64 = null) => {
-          const newMov = {
-            id: Date.now(),
-            tipo,
-            dir: movDirSel,
-            qty,
-            reason,
-            por: UNAME,
-            fecha: new Date().toISOString(),
-            evidencia: evidenciaBase64,
-          };
-          try {
-            await set(ref(db, "inventory_movs/" + newMov.id), newMov);
-            closeMov();
-            toast(
-              (movDirSel === "entrada" ? "Entrada" : "Salida") +
-                " registrada en la nube.",
-              "s",
-            );
-          } catch (e) {
-            toast("Error al guardar.", "e");
-          } finally {
-            btn.disabled = false;
-            btn.textContent = btnText;
-          }
-        };
-
-        if (tipo === "nueva" && movDirSel === "entrada") {
-          const fi = document.getElementById("movFotoInput");
-          if (!fi.files.length) {
-            btn.disabled = false;
-            btn.textContent = btnText;
-            return toast(
-              "Sube la factura o ticket como comprobante de compra.",
-              "e",
-            );
-          }
-          compress(fi.files[0], (base64) => executeSave(base64));
-        } else {
-          executeSave(null);
-        }
-      }
-
-      function renderInventario() {
-        ["nueva", "usada", "danada"].forEach((t) => {
-          document.getElementById("inv-" + t + "-stock").textContent =
-            calcStock(t);
-          const cnt = MOVS.filter((m) => m.tipo === t).length;
-          document.getElementById("inv-" + t + "-mov").textContent =
-            cnt + " mov" + (cnt !== 1 ? "s" : "");
-        });
-
-        const tbody = document.getElementById("movBody");
-        if (!MOVS.length) {
-          tbody.innerHTML =
-            '<tr><td colspan="7" class="empty-td">Sin movimientos registrados</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = [...MOVS]
-          .reverse()
-          .map((m) => {
-            const arrowIcon =
-              m.dir === "entrada"
-                ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg> Entrada'
-                : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> Salida';
-
-            const btnEvidencia = m.evidencia
-              ? `<div class="tthumb" onclick="openImg('${m.evidencia}')"><img src="${m.evidencia}" title="Ver Ticket/Factura"/></div>`
-              : "—";
-
-            return `<tr><td>${fmtDT(m.fecha)}</td><td><span class="chip ${m.tipo}">${tipoLabel[m.tipo] || m.tipo}</span></td><td><span class="chip ${m.dir}">${arrowIcon}</span></td><td><strong>${m.qty}</strong></td><td>${esc(m.reason || "—")}</td><td>${btnEvidencia}</td><td>${esc(m.por || "—")}</td></tr>`;
-          })
-          .join("");
-      }
-
-      // HISTORIAL DE SOLICITUDES (ADMIN)
-      function renderHistorial() {
-        const fType = document.getElementById("admFilterType").value;
-        const fStart = document.getElementById("admDateStart").value;
-        const fEnd = document.getElementById("admDateEnd").value;
-
-        const filteredDB = filterByDate(DB, fType, fStart, fEnd);
-
-        const tot = filteredDB.length;
-        const auth = filteredDB.filter(
-          (r) => r.estado === "completado" || r.estado === "autorizado",
-        );
-        const totBands = auth.reduce((s, r) => s + (r.bandas || 0), 0);
-        const pend = filteredDB.filter((r) => r.estado === "pendiente").length;
-        const rej = filteredDB.filter((r) => r.estado === "rechazado").length;
-
-        document.getElementById("statsRow").innerHTML =
-          `<div class="scard"><div class="lbl">Total registros</div><div class="val">${tot}</div></div><div class="scard"><div class="lbl">Bandas autorizadas</div><div class="val g">${totBands}</div></div><div class="scard"><div class="lbl">Pendientes</div><div class="val y">${pend}</div></div><div class="scard"><div class="lbl">Rechazados</div><div class="val r">${rej}</div></div>`;
-
-        const tbody = document.getElementById("tBody");
-
-        if (!filteredDB.length) {
-          tbody.innerHTML =
-            '<tr><td colspan="11" class="empty-td">No se encontraron registros en este periodo</td></tr>';
-          return;
-        }
-
-        const cmap = {
-          pendiente: "p",
-          autorizado: "a",
-          completado: "c",
-          rechazado: "r",
-        };
-        const clbl = {
-          pendiente: "Pendiente",
-          autorizado: "Autorizado",
-          completado: "Completado",
-          rechazado: "Rechazado",
-        };
-
-        tbody.innerHTML = [...filteredDB]
-          .reverse()
-          .map((r) => {
-            let authCell = "—";
-            if (r.auth_por) {
-              authCell =
-                esc(r.auth_por) +
-                '<br><span style="font-size:10px;color:#aaa">' +
-                fmtDT(r.auth_fecha) +
-                "</span>";
-              if (r.estado === "rechazado" && r.rechazo_motivo) {
-                authCell += `<br><span style="font-size:10px;color:#dc2626;display:block;margin-top:4px"><b>Motivo:</b> ${esc(r.rechazo_motivo)}</span>`;
-              }
-            }
-
-            return `<tr><td>${esc(r.fecha)}</td><td>${esc(r.operador)}</td><td>${esc(r.nodriza)}</td><td>${esc(r.descripcion || "—")}</td><td><strong>${r.bandas}</strong></td><td><span class="chip ${r.tipo_banda || "nueva"}">${tipoLabel[r.tipo_banda] || "—"}</span></td><td><span class="chip ${cmap[r.estado] || "p"}">${clbl[r.estado] || r.estado}</span></td><td>${r.entrega ? esc(r.entrega) : "—"}</td><td>${authCell}</td><td><div style="display:flex;gap:4px;"><div class="tthumb" onclick="openImg('${r.foto}')"><img src="${r.foto}"/></div>${r.foto_entregada ? `<div class="tthumb" onclick="openImg('${r.foto_entregada}')"><img src="${r.foto_entregada}"/></div>` : ""}</div></td><td>${r.firma ? `<div class="tthumb" onclick="openImg('${r.firma}')"><img src="${r.firma}"/></div>` : "—"}</td></tr>`;
-          })
-          .join("");
-      }
-
-      function openImg(src) {
-        document.getElementById("imgBig").src = src;
-        document.getElementById("imgOverlay").classList.add("open");
-      }
-      function closeImg() {
-        document.getElementById("imgOverlay").classList.remove("open");
-      }
-      function setToday() {
-        const d = new Date();
-        document.getElementById("f_fecha").value = new Date(
-          d.getTime() - d.getTimezoneOffset() * 60000,
-        )
-          .toISOString()
-          .split("T")[0];
-      }
-
-      window.logout = logout;
-      window.switchTab = switchTab;
-      window.openAuthType = openAuthType;
-      window.closeAuthType = closeAuthType;
-      window.confirmAuthorize = confirmAuthorize;
-      window.openReject = openReject;
-      window.closeReject = closeReject;
-      window.confirmReject = confirmReject;
-
-      window.toggleOpRange = toggleOpRange;
-      window.toggleAdmRange = toggleAdmRange;
-      window.renderSolicitudes = renderSolicitudes;
-      window.renderHistorial = renderHistorial;
-
-      window.nextCompleteStep = nextCompleteStep;
-      window.prevCompleteStep = prevCompleteStep;
-      window.openCompleteDelivery = openCompleteDelivery;
-      window.closeCompleteDelivery = closeCompleteDelivery;
-      window.saveCompleteDelivery = saveCompleteDelivery;
-
-      window.openMov = openMov;
-      window.closeMov = closeMov;
-      window.selMovType = selMovType;
-      window.saveMov = saveMov;
-      window.checkMovRequirements = checkMovRequirements;
-
-      window.clearSig = clearSig;
-      window.openImg = openImg;
-      window.closeImg = closeImg;
-
-      renderTabs();
-      setToday();
-    </script>
-  </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control de Bandas</title>
+    <script>
+      if (!sessionStorage.getItem("token_rol")) {
+        window.location.href = "index.html"; // Ajustado por si el login está en otra página
+      }
+    </script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #f2f2f2;
+        --surface: #fff;
+        --border: #e5e5e5;
+        --text: #111;
+        --muted: #737373;
+        --y-bg: #fffbeb;
+        --y-bd: #fcd34d;
+        --y-tx: #92400e;
+        --g-bg: #f0fdf4;
+        --g-bd: #86efac;
+        --g-tx: #166534;
+        --r-bg: #fef2f2;
+        --r-bd: #fca5a5;
+        --r-tx: #991b1b;
+        --b-bg: #eff6ff;
+        --b-bd: #93c5fd;
+        --b-tx: #1e40af;
+      }
+      * {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .hdr {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 13px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .hdr-r {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .rchip {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: #111;
+        color: #fff;
+      }
+      .rchip.op {
+        background: #e5e5e5;
+        color: #555;
+      }
+      .user-name {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+      .btn-exit {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        color: #dc2626;
+        padding: 5px 9px;
+        border-radius: 6px;
+        transition: 0.15s;
+      }
+      .btn-exit:hover {
+        background: #fef2f2;
+      }
+
+      .tabbar {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+      .tabbar-in {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        gap: 2px;
+        overflow-x: auto;
+      }
+      .tab {
+        background: none;
+        border: none;
+        padding: 13px 15px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+      .tab:hover {
+        color: var(--text);
+      }
+      .tab.active {
+        color: var(--text);
+        border-bottom-color: #111;
+      }
+      .bcount {
+        background: #dc2626;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 10px;
+        min-width: 17px;
+        text-align: center;
+        display: none;
+      }
+
+      main {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 26px 24px;
+      }
+      .sec {
+        display: none;
+      }
+      .sec.active {
+        display: block;
+        animation: fu 0.22s ease;
+      }
+      @keyframes fu {
+        from {
+          opacity: 0;
+          transform: translateY(7px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 22px;
+        margin-bottom: 18px;
+      }
+      .ctitle {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        color: #333;
+      }
+
+      /* ESTILOS DE LA BARRA DE FILTROS */
+      .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        align-items: center;
+      }
+      .filter-bar select,
+      .filter-bar input[type="date"] {
+        padding: 8px 12px;
+        border: 1px solid #d4d4d4;
+        border-radius: 6px;
+        font-size: 12px;
+        flex: 1;
+        min-width: 140px;
+      }
+      .filter-range {
+        display: none;
+        gap: 10px;
+        flex: 2;
+        min-width: 280px;
+      }
+
+      .fgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+        gap: 13px;
+        margin-bottom: 13px;
+      }
+      .fg {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .fg label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #505050;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      input:not([type="file"]),
+      select,
+      textarea {
+        padding: 9px 11px;
+        border: 1px solid #d4d4d4;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: inherit;
+        width: 100%;
+        transition: 0.15s;
+        background: #fff;
+        color: #111;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #111;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.07);
+      }
+      input[readonly],
+      input[disabled] {
+        background: #f8f8f8;
+        color: #999;
+        cursor: not-allowed;
+      }
+
+      .dropzone {
+        border: 2px dashed #d4d4d4;
+        padding: 18px;
+        text-align: center;
+        border-radius: 8px;
+        background: #fafafa;
+        cursor: pointer;
+        transition: 0.15s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+      }
+      .dropzone:hover {
+        border-color: #111;
+      }
+      .dropzone.ok {
+        border-color: #16a34a;
+        background: #f0fdf4;
+        border-style: solid;
+      }
+      .dropzone span {
+        font-size: 13px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .dropzone.ok span {
+        color: #16a34a;
+        font-weight: 500;
+      }
+
+      /* AJUSTE PARA LA FIRMA RESPONSIVA */
+      .sig-wrap {
+        border: 1px solid #d4d4d4;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 5px;
+        height: 50vh; /* Abarca gran parte de la pantalla en celulares */
+        min-height: 250px;
+        max-height: 400px;
+        width: 100%;
+      }
+      canvas.sig {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+        touch-action: none;
+        background: #fff;
+      }
+      .sig-hint {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ccc;
+        font-size: 13px;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+
+      .btn-primary {
+        background: #111;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        padding: 12px 20px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        margin-top: 8px;
+      }
+      .btn-primary:hover {
+        background: #333;
+      }
+      .btn-primary:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .btn-sm {
+        background: none;
+        border: none;
+        font-size: 12px;
+        cursor: pointer;
+        padding: 3px 7px;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .btn-sm.red {
+        color: #dc2626;
+      }
+      .btn-sm.red:hover {
+        background: #fef2f2;
+      }
+      .btn-green {
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .btn-green:hover {
+        background: #15803d;
+      }
+      .btn-blue {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .btn-red {
+        background: #dc2626;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .sgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .scard {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px 20px;
+      }
+      .scard .lbl {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .scard .val {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .val.g {
+        color: #16a34a;
+      }
+      .val.y {
+        color: #d97706;
+      }
+      .val.r {
+        color: #dc2626;
+      }
+
+      /* INVENTORY STOCK CARDS */
+      .inv-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .inv-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .inv-card .ic-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .inv-card .ic-type {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .ic-type.nueva {
+        color: #2563eb;
+      }
+      .ic-type.usada {
+        color: #d97706;
+      }
+      .ic-type.danada {
+        color: #dc2626;
+      }
+      .inv-card .ic-stock {
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .ic-stock.nueva {
+        color: #2563eb;
+      }
+      .ic-stock.usada {
+        color: #d97706;
+      }
+      .ic-stock.danada {
+        color: #dc2626;
+      }
+      .inv-card .ic-sub {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .ic-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .ic-btn {
+        flex: 1;
+        padding: 7px 0;
+        font-size: 12px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .ic-btn.in {
+        background: #f0fdf4;
+        color: #16a34a;
+        border: 1px solid #86efac;
+      }
+      .ic-btn.in:hover {
+        background: #dcfce7;
+      }
+      .ic-btn.out {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+      }
+      .ic-btn.out:hover {
+        background: #fee2e2;
+      }
+
+      /* TABLE */
+      .twrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      thead tr {
+        background: #f5f5f5;
+      }
+      th {
+        padding: 9px 13px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 11px;
+        color: #444;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+      td {
+        padding: 9px 13px;
+        color: #444;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 20px;
+        letter-spacing: 0.03em;
+      }
+      .chip.p {
+        background: var(--y-bg);
+        color: var(--y-tx);
+      }
+      .chip.a {
+        background: var(--b-bg);
+        color: var(--b-tx);
+      }
+      .chip.c {
+        background: var(--g-bg);
+        color: var(--g-tx);
+      }
+      .chip.r {
+        background: var(--r-bg);
+        color: var(--r-tx);
+      }
+      .chip.nueva {
+        background: var(--b-bg);
+        color: var(--b-tx);
+      }
+      .chip.usada {
+        background: var(--y-bg);
+        color: var(--y-tx);
+      }
+      .chip.danada {
+        background: var(--r-bg);
+        color: var(--r-tx);
+      }
+      .chip.entrada {
+        background: #f0fdf4;
+        color: #15803d;
+      }
+      .chip.salida {
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+      .tthumb {
+        width: 34px;
+        height: 34px;
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        flex-shrink: 0;
+        background: #eee;
+      }
+      .tthumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .empty-td {
+        text-align: center;
+        padding: 32px;
+        color: var(--muted);
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* PENDING CARDS */
+      .plist {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .pcard {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+        transition: 0.15s;
+      }
+      .pcard:hover {
+        border-color: #ccc;
+      }
+      .pcard-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .pcard-meta .nod {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .pcard-meta .sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .pcard-thumbs {
+        display: flex;
+        gap: 7px;
+      }
+      .thumb48 {
+        width: 48px;
+        height: 48px;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        flex-shrink: 0;
+        background: #eee;
+      }
+      .thumb48 img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .pcard-detail {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .pd {
+        background: #f8f8f8;
+        border-radius: 6px;
+        padding: 9px 11px;
+      }
+      .pd .k {
+        font-size: 10px;
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+      }
+      .pd .v {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .pcard-acts {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+      .pcard-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 20px;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
+      .pcard-status.p {
+        background: var(--y-bg);
+        border: 1px solid var(--y-bd);
+        color: var(--y-tx);
+      }
+      .pcard-status.a {
+        background: var(--b-bg);
+        border: 1px solid var(--b-bd);
+        color: var(--b-tx);
+      }
+      .pcard-status.c {
+        background: var(--g-bg);
+        border: 1px solid var(--g-bd);
+        color: var(--g-tx);
+      }
+      .pcard-status.r {
+        background: var(--r-bg);
+        border: 1px solid var(--r-bd);
+        color: var(--r-tx);
+      }
+      .pcard-footer {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+        line-height: 1.7;
+      }
+
+      .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 22px 0;
+      }
+
+      /* MODALS */
+      .overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .overlay.open {
+        display: flex;
+      }
+      .mbox-img {
+        position: relative;
+        max-width: 900px;
+        width: 100%;
+        background: #111;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .mbox-img img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 85vh;
+        object-fit: contain;
+        background: #ffffff; /* Fondo blanco siempre visible */
+      }
+      .mcls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #fff;
+      }
+      .mbox {
+        background: #fff;
+        border-radius: 10px;
+        padding: 26px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      .mbox h3 {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .mbox p {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+      .macts {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 16px;
+      }
+      .btn-cancel {
+        background: none;
+        border: 1px solid #d4d4d4;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        color: #555;
+      }
+      .btn-confirm-r {
+        background: #dc2626;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .mbox.sm {
+        max-width: 420px;
+      }
+      .mbox.md {
+        max-width: 480px;
+      }
+
+      /* MOVEMENT MODAL */
+      .mov-type-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .mov-type-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 7px;
+        border: 2px solid #e5e5e5;
+        background: #fafafa;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .mov-type-btn.sel-in {
+        border-color: #16a34a;
+        background: #f0fdf4;
+        color: #15803d;
+      }
+      .mov-type-btn.sel-out {
+        border-color: #dc2626;
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+
+      /* TOAST */
+      .toast-wrap {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 9999;
+      }
+      .toast {
+        background: #fff;
+        border-left: 4px solid #111;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        padding: 13px 17px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 13px;
+        font-weight: 500;
+        animation: tsl 0.3s ease;
+        max-width: 310px;
+      }
+      .toast.s {
+        border-left-color: #16a34a;
+      }
+      .toast.e {
+        border-left-color: #dc2626;
+      }
+      .toast.i {
+        border-left-color: #2563eb;
+      }
+      @keyframes tsl {
+        from {
+          transform: translateX(110%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <header>
+      <div class="hdr">
+        <div class="brand">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          Control de Bandas
+        </div>
+        <div class="hdr-r">
+          <span class="user-name" id="uname"></span>
+          <span class="rchip" id="rchip">Rol</span>
+          <button class="btn-exit" onclick="logout()">Salir</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="tabbar" id="tabbar">
+      <div class="tabbar-in" id="tabsContainer"></div>
+    </div>
+
+    <main>
+      <section id="s-registro" class="sec">
+        <div class="card" style="max-width: 760px; margin: 0 auto 30px auto">
+          <div class="ctitle">1. Solicitar Cambio de Banda</div>
+          <form id="regForm">
+            <div class="fgrid">
+              <div class="fg">
+                <label>Fecha</label><input type="date" id="f_fecha" readonly />
+              </div>
+              <div class="fg">
+                <label>Nodriza</label
+                ><input
+                  type="text"
+                  id="f_nod"
+                  placeholder="Ej. AC2403"
+                  required
+                  autocomplete="off"
+                />
+              </div>
+              <div class="fg">
+                <label>Cant. Bandas a cambiar</label>
+                <input
+                  type="number"
+                  id="f_band"
+                  placeholder="Cantidad"
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="fg" style="margin-bottom: 14px">
+              <label>Motivo del Cambio / Descripción</label>
+              <textarea
+                id="f_desc"
+                placeholder="Escribe el motivo del cambio (ej. desgaste, ruptura...)"
+                required
+                rows="2"
+              ></textarea>
+            </div>
+
+            <div class="fg" style="margin-bottom: 14px">
+              <label>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                  ></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                Evidencia: Foto de Banda(s) Dañada(s)
+              </label>
+              <div
+                class="dropzone"
+                id="dropZone"
+                onclick="document.getElementById('fotoInput').click()"
+              >
+                <span id="fileLabel"
+                  >Toca para abrir la cámara o seleccionar foto</span
+                >
+                <input
+                  type="file"
+                  id="fotoInput"
+                  accept="image/*"
+                  capture="environment"
+                  style="display: none"
+                  required
+                />
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" id="btnSave">
+              Enviar Solicitud
+            </button>
+          </form>
+        </div>
+
+        <div class="ctitle">Mis Solicitudes Activas</div>
+
+        <div class="filter-bar">
+          <select
+            id="opFilterType"
+            onchange="
+              toggleOpRange();
+              renderSolicitudes();
+            "
+          >
+            <option value="all">Historial Completo (Todas)</option>
+            <option value="day">Día actual</option>
+            <option value="week">Últimos 7 días</option>
+            <option value="month">Último mes</option>
+            <option value="range">Rango de fechas...</option>
+          </select>
+          <div class="filter-range" id="opFilterRange">
+            <input
+              type="date"
+              id="opDateStart"
+              onchange="renderSolicitudes()"
+              title="Fecha de inicio"
+            />
+            <input
+              type="date"
+              id="opDateEnd"
+              onchange="renderSolicitudes()"
+              title="Fecha fin"
+            />
+          </div>
+        </div>
+
+        <div class="plist" id="misSolicitudesList">
+          <p class="empty-td">Cargando información desde la nube...</p>
+        </div>
+      </section>
+
+      <section id="s-autorizaciones" class="sec">
+        <div id="pendSec">
+          <div class="ctitle" style="margin-bottom: 12px">
+            Pendientes de Autorización
+          </div>
+          <div class="plist" id="pendList">
+            <p class="empty-td">Cargando información desde la nube...</p>
+          </div>
+        </div>
+        <hr class="divider" id="histDiv" style="display: none" />
+        <div id="authHist" style="display: none">
+          <div class="ctitle" style="margin-bottom: 12px">
+            Historial de Autorizaciones
+          </div>
+          <div class="plist" id="authHistList"></div>
+        </div>
+      </section>
+
+      <section id="s-inventario" class="sec">
+        <div class="ctitle" style="margin-bottom: 14px">
+          Stock Actual de Bandas
+        </div>
+        <div class="inv-grid">
+          <div class="inv-card">
+            <div class="ic-head">
+              <span class="ic-type nueva">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  stroke="none"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                Nuevas
+              </span>
+              <span
+                style="font-size: 11px; color: var(--muted)"
+                id="inv-nueva-mov"
+                >0 movs</span
+              >
+            </div>
+            <div>
+              <div class="ic-stock nueva" id="inv-nueva-stock">0</div>
+              <div class="ic-sub" id="inv-nueva-sub">unidades disponibles</div>
+            </div>
+            <div class="ic-actions">
+              <button class="ic-btn in" onclick="openMov('nueva', 'entrada')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+                Entrada</button
+              ><button class="ic-btn out" onclick="openMov('nueva', 'salida')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+                Salida
+              </button>
+            </div>
+          </div>
+          <div class="inv-card">
+            <div class="ic-head">
+              <span class="ic-type usada">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  stroke="none"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                Usadas con Vida Útil
+              </span>
+              <span
+                style="font-size: 11px; color: var(--muted)"
+                id="inv-usada-mov"
+                >0 movs</span
+              >
+            </div>
+            <div>
+              <div class="ic-stock usada" id="inv-usada-stock">0</div>
+              <div class="ic-sub" id="inv-usada-sub">unidades disponibles</div>
+            </div>
+            <div class="ic-actions">
+              <button class="ic-btn in" onclick="openMov('usada', 'entrada')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+                Entrada</button
+              ><button class="ic-btn out" onclick="openMov('usada', 'salida')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+                Salida
+              </button>
+            </div>
+          </div>
+          <div class="inv-card">
+            <div class="ic-head">
+              <span class="ic-type danada">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  stroke="none"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                Dañadas
+              </span>
+              <span
+                style="font-size: 11px; color: var(--muted)"
+                id="inv-danada-mov"
+                >0 movs</span
+              >
+            </div>
+            <div>
+              <div class="ic-stock danada" id="inv-danada-stock">0</div>
+              <div class="ic-sub" id="inv-danada-sub">unidades registradas</div>
+            </div>
+            <div class="ic-actions">
+              <button class="ic-btn in" onclick="openMov('danada', 'entrada')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+                Entrada</button
+              ><button class="ic-btn out" onclick="openMov('danada', 'salida')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+                Salida
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Historial de Movimientos de Stock</div>
+          <div class="twrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha y Hora</th>
+                  <th>Tipo</th>
+                  <th>Movimiento</th>
+                  <th>Cantidad</th>
+                  <th>Motivo / Referencia</th>
+                  <th>Evidencia</th>
+                  <th>Registrado por</th>
+                </tr>
+              </thead>
+              <tbody id="movBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="s-historial" class="sec">
+        <div class="ctitle" style="margin-bottom: 10px">
+          Filtros de Historial
+        </div>
+
+        <div class="filter-bar">
+          <select
+            id="admFilterType"
+            onchange="
+              toggleAdmRange();
+              renderHistorial();
+            "
+          >
+            <option value="all">Historial Completo (Todas)</option>
+            <option value="day">Día actual</option>
+            <option value="week">Últimos 7 días</option>
+            <option value="month">Último mes</option>
+            <option value="range">Rango de fechas...</option>
+          </select>
+          <div class="filter-range" id="admFilterRange">
+            <input
+              type="date"
+              id="admDateStart"
+              onchange="renderHistorial()"
+              title="Fecha de inicio"
+            />
+            <input
+              type="date"
+              id="admDateEnd"
+              onchange="renderHistorial()"
+              title="Fecha fin"
+            />
+          </div>
+        </div>
+
+        <div class="sgrid" id="statsRow"></div>
+        <div class="card">
+          <div class="ctitle">Historial Completo de Cambios</div>
+          <div class="twrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Operador</th>
+                  <th>Nodriza</th>
+                  <th>Motivo</th>
+                  <th>Bandas</th>
+                  <th>Tipo</th>
+                  <th>Estado</th>
+                  <th>Quien Entrega</th>
+                  <th>Atendido por</th>
+                  <th>Evidencia</th>
+                  <th>Firma</th>
+                </tr>
+              </thead>
+              <tbody id="tBody">
+                <tr>
+                  <td colspan="11" class="empty-td">
+                    Sincronizando con Firebase...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="overlay" id="imgOverlay" onclick="closeImg()">
+      <div class="mbox-img" onclick="event.stopPropagation()">
+        <img id="imgBig" src="" alt="" />
+        <button class="mcls" onclick="closeImg()">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="overlay" id="authTypeOverlay">
+      <div class="mbox sm">
+        <h3>Autorizar Solicitud</h3>
+        <p style="margin-bottom: 15px">
+          Confirma la autorización de esta solicitud. El tipo de banda será
+          asignado por el operador al momento de la entrega.
+        </p>
+        <div class="macts">
+          <button class="btn-cancel" onclick="closeAuthType()">Cancelar</button>
+          <button class="btn-green" onclick="confirmAuthorize()">
+            Autorizar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL REGISTRO DE MOVIMIENTO MODIFICADO -->
+    <div class="overlay" id="movOverlay">
+      <div class="mbox md">
+        <h3 id="movTitle">Registrar Movimiento</h3>
+        <div class="mov-type-row" id="movTypeRow">
+          <div
+            class="mov-type-btn sel-in"
+            id="movBtnIn"
+            onclick="selMovType('entrada')"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+            Entrada
+          </div>
+          <div
+            class="mov-type-btn"
+            id="movBtnOut"
+            onclick="selMovType('salida')"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            Salida
+          </div>
+        </div>
+        <div
+          class="fgrid"
+          style="grid-template-columns: 1fr 1fr; margin-bottom: 12px"
+        >
+          <div class="fg">
+            <label>Cantidad</label>
+            <input type="number" id="movQty" min="1" placeholder="0" />
+          </div>
+          <div class="fg">
+            <label>Tipo de Banda</label>
+            <select id="movTipo" onchange="checkMovRequirements()">
+              <option value="nueva">Nueva</option>
+              <option value="usada">Usada con vida útil</option>
+              <option value="danada">Dañada</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fg" style="margin-bottom: 14px">
+          <label>Motivo / Referencia</label>
+          <input
+            type="text"
+            id="movReason"
+            placeholder="Ej. Compra proveedor, merma, traslado..."
+          />
+        </div>
+
+        <!-- RECUADRO DE EVIDENCIA (Oculto por defecto, se muestra solo en Entrada de Nuevas) -->
+        <div
+          class="fg"
+          id="movEvidenceGroup"
+          style="display: none; margin-bottom: 14px"
+        >
+          <label>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              ></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Factura o Ticket de Compra
+          </label>
+          <div
+            class="dropzone"
+            id="dzMov"
+            onclick="document.getElementById('movFotoInput').click()"
+          >
+            <span id="lblMov">Toca para subir factura o ticket</span>
+            <input
+              type="file"
+              id="movFotoInput"
+              accept="image/*"
+              capture="environment"
+              style="display: none"
+            />
+          </div>
+        </div>
+
+        <div class="macts">
+          <button class="btn-cancel" onclick="closeMov()">Cancelar</button>
+          <button class="btn-green" id="movConfirmBtn" onclick="saveMov()">
+            Guardar Movimiento
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="rejectOverlay">
+      <div class="mbox sm">
+        <h3>Motivo de Rechazo</h3>
+        <textarea
+          id="rejectReason"
+          style="
+            width: 100%;
+            min-height: 80px;
+            resize: vertical;
+            padding: 9px;
+            border: 1px solid #d4d4d4;
+            border-radius: 6px;
+            font-size: 13px;
+          "
+          placeholder="Escribe el motivo (opcional)..."
+        ></textarea>
+        <div class="macts">
+          <button class="btn-cancel" onclick="closeReject()">Cancelar</button>
+          <button class="btn-confirm-r" onclick="confirmReject()">
+            Rechazar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="completeOverlay">
+      <div class="mbox md">
+        <div id="step1Delivery">
+          <h3>Completar Entrega (1/2)</h3>
+          <p style="margin-bottom: 15px">
+            Selecciona el tipo de banda recibida y sube la evidencia
+            fotográfica.
+          </p>
+
+          <div class="fg" style="margin-bottom: 15px">
+            <label>Tipo de Banda Recibida</label>
+            <select id="recTipoBanda">
+              <option value="nueva">Nueva</option>
+              <option value="usada">Usada con vida útil</option>
+            </select>
+          </div>
+
+          <div class="fg" style="margin-bottom: 25px">
+            <label>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                ></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              Evidencia: Foto de Banda Recibida
+            </label>
+            <div
+              class="dropzone"
+              id="dzRecibida"
+              onclick="document.getElementById('f_foto_recibida').click()"
+            >
+              <span id="lblRecibida">Toca para abrir cámara</span>
+              <input
+                type="file"
+                id="f_foto_recibida"
+                accept="image/*"
+                capture="environment"
+                style="display: none"
+              />
+            </div>
+          </div>
+
+          <div class="macts">
+            <button class="btn-cancel" onclick="closeCompleteDelivery()">
+              Cancelar
+            </button>
+            <button class="btn-blue" onclick="nextCompleteStep()">
+              Siguiente
+            </button>
+          </div>
+        </div>
+
+        <div id="step2Delivery" style="display: none">
+          <h3>Firma de Conformidad (2/2)</h3>
+          <p style="margin-bottom: 10px">
+            Traza tu firma en el recuadro. Al confirmar, se descontará del
+            inventario de forma automática.
+          </p>
+
+          <div class="fg">
+            <div
+              style="
+                display: flex;
+                justify-content: flex-end;
+                margin-bottom: 5px;
+              "
+            >
+              <button class="btn-sm red" onclick="clearSig()">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Borrar
+              </button>
+            </div>
+            <div class="sig-wrap">
+              <span class="sig-hint" id="sigHint">Dibuja tu firma aquí</span>
+              <canvas id="sigCanvas" class="sig"></canvas>
+            </div>
+          </div>
+
+          <div class="macts">
+            <button class="btn-cancel" onclick="prevCompleteStep()">
+              Atrás
+            </button>
+            <button
+              class="btn-green"
+              id="btnConfirmDelivery"
+              onclick="saveCompleteDelivery()"
+            >
+              Confirmar Recepción
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        auth,
+        db,
+        signOut,
+        onAuthStateChanged,
+        ref,
+        set,
+        onValue,
+      } from "./conexion.js";
+
+      let currentUser = null;
+      let DB = [];
+      let MOVS = [];
+      const ROL = sessionStorage.getItem("token_rol");
+      const UNAME = sessionStorage.getItem("user_name") || "Usuario";
+      document.getElementById("uname").textContent = UNAME;
+      const rchip = document.getElementById("rchip");
+      rchip.textContent = ROL ? ROL.toUpperCase() : "OPERADOR";
+      if (ROL === "operador") rchip.classList.add("op");
+
+      async function logout() {
+        await signOut(auth);
+        sessionStorage.clear();
+        window.location.href = "index.html";
+      }
+
+      function toast(msg, type = "i") {
+        const c = document.getElementById("toastWrap"),
+          t = document.createElement("div");
+        t.className = "toast " + type;
+        const ic = {
+          s: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>',
+          e: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/></svg>',
+          i: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+        };
+        t.innerHTML = (ic[type] || ic.i) + `<span>${msg}</span>`;
+        c.appendChild(t);
+        setTimeout(() => {
+          t.style.opacity = "0";
+          t.style.transition = "opacity .3s";
+          setTimeout(() => t.remove(), 300);
+        }, 3500);
+      }
+
+      function renderTabs() {
+        const tc = document.getElementById("tabsContainer");
+        if (ROL === "operador")
+          tc.innerHTML = `<button class="tab active" onclick="switchTab('registro', this)">Mis Solicitudes de Cambio</button>`;
+        else
+          tc.innerHTML = `<button class="tab active" onclick="switchTab('autorizaciones', this)">Autorizaciones <span class="bcount" id="bcount">0</span></button><button class="tab" onclick="switchTab('inventario', this)">Inventario de Stock</button><button class="tab" onclick="switchTab('historial', this)">Historial de Cambios</button>`;
+        switchTab(
+          ROL === "operador" ? "registro" : "autorizaciones",
+          tc.firstElementChild,
+        );
+      }
+
+      function switchTab(name, btn) {
+        document
+          .querySelectorAll(".sec")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".tab")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById("s-" + name).classList.add("active");
+        if (btn) btn.classList.add("active");
+        if (name === "registro") renderSolicitudes();
+        if (name === "autorizaciones") {
+          renderAuthPage();
+          updateBadge();
+        }
+        if (name === "inventario") renderInventario();
+        if (name === "historial") renderHistorial();
+      }
+
+      // LÓGICA DE FILTRADO POR FECHA REUTILIZABLE
+      function filterByDate(dataList, filterType, startDate, endDate) {
+        if (!filterType || filterType === "all") return dataList;
+
+        const getLocalYMD = (d) => {
+          const dt = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+          return dt.toISOString().split("T")[0];
+        };
+
+        const now = new Date();
+        const todayStr = getLocalYMD(now);
+
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const weekAgoStr = getLocalYMD(weekAgo);
+
+        const monthAgo = new Date(now);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        const monthAgoStr = getLocalYMD(monthAgo);
+
+        return dataList.filter((r) => {
+          const dStr = r.fecha; // Ya viene en formato YYYY-MM-DD
+          if (!dStr) return false;
+
+          if (filterType === "day") return dStr === todayStr;
+          if (filterType === "week")
+            return dStr >= weekAgoStr && dStr <= todayStr;
+          if (filterType === "month")
+            return dStr >= monthAgoStr && dStr <= todayStr;
+          if (filterType === "range") {
+            if (startDate && endDate)
+              return dStr >= startDate && dStr <= endDate;
+            if (startDate) return dStr >= startDate;
+            if (endDate) return dStr <= endDate;
+            return true;
+          }
+          return true;
+        });
+      }
+
+      function toggleOpRange() {
+        const type = document.getElementById("opFilterType").value;
+        document.getElementById("opFilterRange").style.display =
+          type === "range" ? "flex" : "none";
+      }
+
+      function toggleAdmRange() {
+        const type = document.getElementById("admFilterType").value;
+        document.getElementById("admFilterRange").style.display =
+          type === "range" ? "flex" : "none";
+      }
+
+      // FIREBASE RTDB LISTENERS
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          currentUser = user;
+          setupRealtimeListeners();
+        } else {
+          logout();
+        }
+      });
+
+      function setupRealtimeListeners() {
+        onValue(ref(db, "requests"), (snapshot) => {
+          const data = snapshot.val();
+          DB = data ? Object.values(data) : [];
+          if (ROL === "operador") renderSolicitudes();
+          if (ROL === "admin") {
+            renderAuthPage();
+            updateBadge();
+            renderHistorial();
+          }
+        });
+        if (ROL === "admin") {
+          onValue(ref(db, "inventory_movs"), (snapshot) => {
+            const data = snapshot.val();
+            MOVS = data ? Object.values(data) : [];
+            renderInventario();
+          });
+        }
+      }
+
+      // LISTENER FOTOS DE SOLICITUD
+      document
+        .getElementById("fotoInput")
+        .addEventListener("change", function () {
+          const dz = document.getElementById("dropZone"),
+            lbl = document.getElementById("fileLabel");
+          if (this.files.length) {
+            dz.classList.add("ok");
+            lbl.innerHTML =
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> ' +
+              this.files[0].name;
+          } else resetFoto();
+        });
+
+      // LISTENER FOTOS DE RECEPCIÓN
+      document
+        .getElementById("f_foto_recibida")
+        .addEventListener("change", function () {
+          const dz = document.getElementById("dzRecibida"),
+            lbl = document.getElementById("lblRecibida");
+          if (this.files.length) {
+            dz.classList.add("ok");
+            lbl.innerHTML =
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> ' +
+              this.files[0].name;
+          } else {
+            dz.classList.remove("ok");
+            lbl.textContent = "Toca para abrir cámara";
+            this.value = "";
+          }
+        });
+
+      // LISTENER FOTO DE EVIDENCIA MOVIMIENTO
+      document
+        .getElementById("movFotoInput")
+        .addEventListener("change", function () {
+          const dz = document.getElementById("dzMov"),
+            lbl = document.getElementById("lblMov");
+          if (this.files.length) {
+            dz.classList.add("ok");
+            lbl.innerHTML =
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> ' +
+              this.files[0].name;
+          } else {
+            resetMovFoto();
+          }
+        });
+
+      function resetFoto() {
+        document.getElementById("dropZone").classList.remove("ok");
+        document.getElementById("fileLabel").textContent =
+          "Toca para abrir la cámara o seleccionar foto";
+        document.getElementById("fotoInput").value = "";
+      }
+      function resetMovFoto() {
+        document.getElementById("dzMov").classList.remove("ok");
+        document.getElementById("lblMov").textContent =
+          "Toca para subir factura o ticket";
+        document.getElementById("movFotoInput").value = "";
+      }
+
+      function compress(file, cb) {
+        const fr = new FileReader();
+        fr.readAsDataURL(file);
+        fr.onload = (ev) => {
+          const img = new Image();
+          img.src = ev.target.result;
+          img.onload = () => {
+            const mw = 600,
+              sc = mw / img.width,
+              c = document.createElement("canvas");
+            c.width = mw;
+            c.height = img.height * sc;
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            cb(c.toDataURL("image/jpeg", 0.65));
+          };
+        };
+      }
+
+      // 1. SOLICITAR
+      document
+        .getElementById("regForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const fi = document.getElementById("fotoInput");
+          if (!fi.files.length)
+            return toast("Sube la fotografía de la banda dañada.", "e");
+          const btn = document.getElementById("btnSave");
+          btn.disabled = true;
+          btn.textContent = "Guardando en Firebase...";
+
+          compress(fi.files[0], async (fotoBase64) => {
+            const reqData = {
+              id: Date.now(),
+              fecha: document.getElementById("f_fecha").value,
+              creado: new Date().toISOString(),
+              operador: UNAME,
+              nodriza: document
+                .getElementById("f_nod")
+                .value.trim()
+                .toUpperCase(),
+              descripcion: document.getElementById("f_desc").value.trim(),
+              bandas: parseInt(document.getElementById("f_band").value) || 0,
+              estado: "pendiente",
+              foto: fotoBase64,
+              tipo_banda: null,
+              entrega: null,
+              firma: null,
+              foto_entregada: null,
+              auth_por: null,
+              auth_fecha: null,
+              rechazo_motivo: null,
+            };
+
+            try {
+              await set(ref(db, "requests/" + reqData.id), reqData);
+              toast("Solicitud enviada a autorización.", "s");
+              this.reset();
+              resetFoto();
+              setToday();
+            } catch (error) {
+              console.error(error);
+              toast("Error de conexión con la Nube.", "e");
+            } finally {
+              btn.disabled = false;
+              btn.textContent = "Enviar Solicitud a la Nube";
+            }
+          });
+        });
+
+      const tipoLabel = {
+        nueva: "Nueva",
+        usada: "Usada con vida útil",
+        danada: "Dañada",
+      };
+      function fmtDT(d) {
+        try {
+          return new Date(d).toLocaleString("es-MX", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch (e) {
+          return d;
+        }
+      }
+      function esc(s) {
+        return String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function buildPCard(r, role) {
+        const smap = {
+          pendiente: { cls: "p", lbl: "Pendiente" },
+          autorizado: { cls: "a", lbl: "Autorizado (Esperando Firma)" },
+          completado: { cls: "c", lbl: "Completado" },
+          rechazado: { cls: "r", lbl: "Rechazado" },
+        };
+        const s = smap[r.estado] || smap.pendiente;
+        let acts = "";
+        if (role === "admin" && r.estado === "pendiente") {
+          acts = `<div class="pcard-acts"><button class="btn-green" onclick="openAuthType(${r.id})">Autorizar</button><button class="btn-red" onclick="openReject(${r.id})">Rechazar</button></div>`;
+        } else if (role === "operador" && r.estado === "autorizado") {
+          acts = `<div class="pcard-acts"><button class="btn-blue" onclick="openCompleteDelivery(${r.id})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Recibir y Firmar</button></div>`;
+        }
+        let footer = "";
+        if (r.auth_por) {
+          const statusIcon =
+            r.estado === "rechazado"
+              ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-bottom: 2px;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> Rechazado'
+              : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-bottom: 2px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Autorizado';
+          footer = `<div class="pcard-footer">${statusIcon} por <strong>${esc(r.auth_por)}</strong> — ${fmtDT(r.auth_fecha)}${r.entrega ? `<br>Quien entrega: <strong>${esc(r.entrega)}</strong>` : ""}${r.rechazo_motivo ? `<br>Motivo de rechazo: <em style="color:#dc2626">${esc(r.rechazo_motivo)}</em>` : ""}</div>`;
+        }
+        return `<div class="pcard"><div class="pcard-top"><div class="pcard-meta"><div class="nod">${esc(r.nodriza)} <span style="font-size:14px;color:#555">(${r.bandas} unid.)</span></div><div class="sub">${esc(r.fecha)} · Operador: ${esc(r.operador)}</div>${r.descripcion ? `<div class="sub" style="margin-top:4px;"><strong>Motivo:</strong> <em>${esc(r.descripcion)}</em></div>` : ""}</div><div class="pcard-thumbs"><div class="thumb48" onclick="openImg('${r.foto}')"><img src="${r.foto}" title="Dañada"/></div>${r.foto_entregada ? `<div class="thumb48" onclick="openImg('${r.foto_entregada}')"><img src="${r.foto_entregada}" title="Entregada"/></div>` : ""}${r.firma ? `<div class="thumb48" onclick="openImg('${r.firma}')"><img src="${r.firma}" title="Firma"/></div>` : ""}</div></div><div class="pcard-status ${s.cls}">${s.lbl}</div><div class="pcard-detail">${r.tipo_banda ? `<div class="pd"><div class="k">Tipo Asignado</div><div class="v">${tipoLabel[r.tipo_banda] || r.tipo_banda}</div></div>` : ""}</div>${acts}${footer}</div>`;
+      }
+
+      function renderSolicitudes() {
+        if (ROL !== "operador") return;
+
+        let myReqs = DB.filter((r) => r.operador === UNAME);
+
+        // Obtener valores de los filtros
+        const fType = document.getElementById("opFilterType").value;
+        const fStart = document.getElementById("opDateStart").value;
+        const fEnd = document.getElementById("opDateEnd").value;
+
+        // Aplicar el filtro por fecha
+        myReqs = filterByDate(myReqs, fType, fStart, fEnd);
+
+        myReqs.sort((a, b) => b.id - a.id);
+
+        document.getElementById("misSolicitudesList").innerHTML = myReqs.length
+          ? myReqs.map((r) => buildPCard(r, "operador")).join("")
+          : "<p class='empty-td'>No se encontraron solicitudes en este periodo.</p>";
+      }
+
+      // 2. ADMIN AUTORIZA
+      let currentAuthId = null;
+      function renderAuthPage() {
+        const pend = DB.filter((r) => r.estado === "pendiente").sort(
+          (a, b) => a.id - b.id,
+        );
+        const hist = DB.filter((r) => r.estado !== "pendiente").sort(
+          (a, b) => b.id - a.id,
+        );
+        document.getElementById("pendList").innerHTML = pend.length
+          ? pend.map((r) => buildPCard(r, "admin")).join("")
+          : '<div class="empty-td"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Sin pendientes de autorización</div>';
+        const histDiv = document.getElementById("histDiv"),
+          authHist = document.getElementById("authHist");
+        if (hist.length) {
+          histDiv.style.display = "block";
+          authHist.style.display = "block";
+          document.getElementById("authHistList").innerHTML = hist
+            .map((r) => buildPCard(r, "admin"))
+            .join("");
+        } else {
+          histDiv.style.display = "none";
+          authHist.style.display = "none";
+        }
+      }
+      function updateBadge() {
+        const n = DB.filter((r) => r.estado === "pendiente").length;
+        const b = document.getElementById("bcount");
+        b.textContent = n;
+        b.style.display = n ? "inline-block" : "none";
+      }
+
+      function openAuthType(id) {
+        currentAuthId = id;
+        document.getElementById("authTypeOverlay").classList.add("open");
+      }
+      function closeAuthType() {
+        document.getElementById("authTypeOverlay").classList.remove("open");
+        currentAuthId = null;
+      }
+      async function confirmAuthorize() {
+        const rec = DB.find((r) => r.id === currentAuthId);
+        if (rec) {
+          rec.estado = "autorizado";
+          rec.auth_por = UNAME;
+          rec.auth_fecha = new Date().toISOString();
+          rec.entrega = UNAME;
+          await set(ref(db, "requests/" + rec.id), rec);
+          toast("Autorizado en la nube. Esperando firma.", "s");
+        }
+        closeAuthType();
+      }
+      function openReject(id) {
+        currentAuthId = id;
+        document.getElementById("rejectReason").value = "";
+        document.getElementById("rejectOverlay").classList.add("open");
+      }
+      function closeReject() {
+        document.getElementById("rejectOverlay").classList.remove("open");
+        currentAuthId = null;
+      }
+      async function confirmReject() {
+        const rec = DB.find((r) => r.id === currentAuthId);
+        if (rec) {
+          rec.estado = "rechazado";
+          rec.auth_por = UNAME;
+          rec.auth_fecha = new Date().toISOString();
+          rec.rechazo_motivo =
+            document.getElementById("rejectReason").value.trim() || null;
+          await set(ref(db, "requests/" + rec.id), rec);
+          toast("Solicitud rechazada.", "i");
+        }
+        closeReject();
+      }
+
+      // 3. OPERADOR RECIBE - FLUJO EN DOS PASOS
+      let currentCompleteId = null;
+      const sigCanvas = document.getElementById("sigCanvas"),
+        sigCtx = sigCanvas.getContext("2d");
+      let drawing = false;
+
+      function resizeSig() {
+        const r = sigCanvas.parentElement.getBoundingClientRect();
+        sigCanvas.width = r.width;
+        sigCanvas.height = r.height;
+
+        sigCtx.fillStyle = "#ffffff";
+        sigCtx.fillRect(0, 0, sigCanvas.width, sigCanvas.height);
+
+        sigCtx.strokeStyle = "#111";
+        sigCtx.lineWidth = 3;
+        sigCtx.lineCap = "round";
+        sigCtx.lineJoin = "round";
+      }
+
+      function sigPos(e) {
+        const r = sigCanvas.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: cx - r.left, y: cy - r.top };
+      }
+      function startDraw(e) {
+        drawing = true;
+        document.getElementById("sigHint").style.opacity = "0";
+        sigCtx.beginPath();
+        const p = sigPos(e);
+        sigCtx.moveTo(p.x, p.y);
+      }
+      sigCanvas.addEventListener("mousedown", startDraw);
+      sigCanvas.addEventListener("mousemove", (e) => {
+        if (drawing) {
+          const p = sigPos(e);
+          sigCtx.lineTo(p.x, p.y);
+          sigCtx.stroke();
+        }
+      });
+      sigCanvas.addEventListener("mouseup", () => (drawing = false));
+      sigCanvas.addEventListener("mouseleave", () => (drawing = false));
+      sigCanvas.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          startDraw(e);
+        },
+        { passive: false },
+      );
+      sigCanvas.addEventListener(
+        "touchmove",
+        (e) => {
+          if (drawing) {
+            e.preventDefault();
+            const p = sigPos(e);
+            sigCtx.lineTo(p.x, p.y);
+            sigCtx.stroke();
+          }
+        },
+        { passive: false },
+      );
+      sigCanvas.addEventListener("touchend", () => (drawing = false));
+
+      function clearSig() {
+        sigCtx.fillStyle = "#ffffff";
+        sigCtx.fillRect(0, 0, sigCanvas.width, sigCanvas.height);
+        document.getElementById("sigHint").style.opacity = "1";
+      }
+
+      function isSigBlank() {
+        const b = document.createElement("canvas");
+        b.width = sigCanvas.width;
+        b.height = sigCanvas.height;
+        const ctx = b.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, b.width, b.height);
+        return sigCanvas.toDataURL() === b.toDataURL();
+      }
+
+      function nextCompleteStep() {
+        const fi = document.getElementById("f_foto_recibida");
+        if (!fi.files.length) {
+          return toast("Sube la foto de la banda recibida primero.", "e");
+        }
+        document.getElementById("step1Delivery").style.display = "none";
+        document.getElementById("step2Delivery").style.display = "block";
+        setTimeout(resizeSig, 50);
+      }
+
+      function prevCompleteStep() {
+        document.getElementById("step2Delivery").style.display = "none";
+        document.getElementById("step1Delivery").style.display = "block";
+      }
+
+      function openCompleteDelivery(id) {
+        currentCompleteId = id;
+        document.getElementById("step1Delivery").style.display = "block";
+        document.getElementById("step2Delivery").style.display = "none";
+        document.getElementById("completeOverlay").classList.add("open");
+      }
+
+      function closeCompleteDelivery() {
+        document.getElementById("completeOverlay").classList.remove("open");
+        currentCompleteId = null;
+        clearSig();
+        document.getElementById("dzRecibida").classList.remove("ok");
+        document.getElementById("lblRecibida").textContent =
+          "Toca para abrir cámara";
+        document.getElementById("f_foto_recibida").value = "";
+      }
+
+      function saveCompleteDelivery() {
+        const fi = document.getElementById("f_foto_recibida");
+        if (!fi.files.length)
+          return toast("Sube la foto de la banda recibida", "e");
+        if (isSigBlank()) return toast("Debes firmar de conformidad", "e");
+
+        const btn = document.getElementById("btnConfirmDelivery");
+        const btnText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Sincronizando con la Nube...";
+
+        compress(fi.files[0], async (fotoBase64) => {
+          const firmaBase64 = sigCanvas.toDataURL("image/jpeg", 0.8);
+
+          const rec = DB.find((r) => r.id === currentCompleteId);
+          if (rec) {
+            rec.estado = "completado";
+            rec.tipo_banda = document.getElementById("recTipoBanda").value;
+            rec.foto_entregada = fotoBase64;
+            rec.firma = firmaBase64;
+
+            const movId = Date.now() + Math.floor(Math.random() * 1000);
+            const outMov = {
+              id: movId,
+              tipo: rec.tipo_banda,
+              dir: "salida",
+              qty: rec.bandas,
+              reason: `Entrega automática a nodriza ${rec.nodriza} (Sol. #${rec.id})`,
+              por: UNAME,
+              fecha: new Date().toISOString(),
+            };
+
+            try {
+              await set(ref(db, "requests/" + rec.id), rec);
+              await set(ref(db, "inventory_movs/" + movId), outMov);
+              toast(
+                "Proceso completado exitosamente y descontado de stock",
+                "s",
+              );
+            } catch (e) {
+              toast("Error al guardar en la nube.", "e");
+            }
+          }
+          btn.disabled = false;
+          btn.textContent = btnText;
+          closeCompleteDelivery();
+        });
+      }
+
+      // INVENTARIO Y MOVIMIENTOS
+      let movTipoSel = "nueva",
+        movDirSel = "entrada";
+
+      function checkMovRequirements() {
+        const tipo = document.getElementById("movTipo").value;
+        const eg = document.getElementById("movEvidenceGroup");
+        if (tipo === "nueva" && movDirSel === "entrada") {
+          eg.style.display = "flex";
+        } else {
+          eg.style.display = "none";
+        }
+      }
+
+      function openMov(tipo, dir) {
+        movTipoSel = tipo;
+        movDirSel = dir;
+        document.getElementById("movTitle").textContent =
+          (dir === "entrada" ? "Registrar Entrada" : "Registrar Salida") +
+          " de Stock";
+        document.getElementById("movTipo").value = tipo;
+        document.getElementById("movQty").value = "";
+        document.getElementById("movReason").value = "";
+        resetMovFoto();
+        selMovType(dir);
+        document.getElementById("movOverlay").classList.add("open");
+      }
+
+      function closeMov() {
+        document.getElementById("movOverlay").classList.remove("open");
+      }
+
+      function selMovType(dir) {
+        movDirSel = dir;
+        const bi = document.getElementById("movBtnIn"),
+          bo = document.getElementById("movBtnOut");
+        bi.className = "mov-type-btn" + (dir === "entrada" ? " sel-in" : "");
+        bo.className = "mov-type-btn" + (dir === "salida" ? " sel-out" : "");
+        document.getElementById("movConfirmBtn").className =
+          dir === "entrada" ? "btn-green" : "btn-red";
+        document.getElementById("movConfirmBtn").textContent =
+          dir === "entrada" ? "Guardar Entrada" : "Guardar Salida";
+        checkMovRequirements();
+      }
+
+      function calcStock(tipo) {
+        return MOVS.filter((m) => m.tipo === tipo).reduce(
+          (s, m) => (m.dir === "entrada" ? s + m.qty : s - m.qty),
+          0,
+        );
+      }
+
+      async function saveMov() {
+        const qty = parseInt(document.getElementById("movQty").value) || 0;
+        const tipo = document.getElementById("movTipo").value;
+        const reason = document.getElementById("movReason").value.trim();
+
+        if (!qty || qty < 1) return toast("Ingresa una cantidad válida.", "e");
+
+        const stock = calcStock(tipo);
+        if (movDirSel === "salida" && qty > stock)
+          return toast("Stock insuficiente. Disponible: " + stock, "e");
+
+        const btn = document.getElementById("movConfirmBtn");
+        const btnText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Guardando...";
+
+        const executeSave = async (evidenciaBase64 = null) => {
+          const newMov = {
+            id: Date.now(),
+            tipo,
+            dir: movDirSel,
+            qty,
+            reason,
+            por: UNAME,
+            fecha: new Date().toISOString(),
+            evidencia: evidenciaBase64,
+          };
+          try {
+            await set(ref(db, "inventory_movs/" + newMov.id), newMov);
+            closeMov();
+            toast(
+              (movDirSel === "entrada" ? "Entrada" : "Salida") +
+                " registrada en la nube.",
+              "s",
+            );
+          } catch (e) {
+            toast("Error al guardar.", "e");
+          } finally {
+            btn.disabled = false;
+            btn.textContent = btnText;
+          }
+        };
+
+        if (tipo === "nueva" && movDirSel === "entrada") {
+          const fi = document.getElementById("movFotoInput");
+          if (!fi.files.length) {
+            btn.disabled = false;
+            btn.textContent = btnText;
+            return toast(
+              "Sube la factura o ticket como comprobante de compra.",
+              "e",
+            );
+          }
+          compress(fi.files[0], (base64) => executeSave(base64));
+        } else {
+          executeSave(null);
+        }
+      }
+
+      function renderInventario() {
+        ["nueva", "usada", "danada"].forEach((t) => {
+          document.getElementById("inv-" + t + "-stock").textContent =
+            calcStock(t);
+          const cnt = MOVS.filter((m) => m.tipo === t).length;
+          document.getElementById("inv-" + t + "-mov").textContent =
+            cnt + " mov" + (cnt !== 1 ? "s" : "");
+        });
+
+        const tbody = document.getElementById("movBody");
+        if (!MOVS.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" class="empty-td">Sin movimientos registrados</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = [...MOVS]
+          .reverse()
+          .map((m) => {
+            const arrowIcon =
+              m.dir === "entrada"
+                ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg> Entrada'
+                : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> Salida';
+
+            const btnEvidencia = m.evidencia
+              ? `<div class="tthumb" onclick="openImg('${m.evidencia}')"><img src="${m.evidencia}" title="Ver Ticket/Factura"/></div>`
+              : "—";
+
+            return `<tr><td>${fmtDT(m.fecha)}</td><td><span class="chip ${m.tipo}">${tipoLabel[m.tipo] || m.tipo}</span></td><td><span class="chip ${m.dir}">${arrowIcon}</span></td><td><strong>${m.qty}</strong></td><td>${esc(m.reason || "—")}</td><td>${btnEvidencia}</td><td>${esc(m.por || "—")}</td></tr>`;
+          })
+          .join("");
+      }
+
+      // HISTORIAL DE SOLICITUDES (ADMIN)
+      function renderHistorial() {
+        const fType = document.getElementById("admFilterType").value;
+        const fStart = document.getElementById("admDateStart").value;
+        const fEnd = document.getElementById("admDateEnd").value;
+
+        const filteredDB = filterByDate(DB, fType, fStart, fEnd);
+
+        const tot = filteredDB.length;
+        const auth = filteredDB.filter(
+          (r) => r.estado === "completado" || r.estado === "autorizado",
+        );
+        const totBands = auth.reduce((s, r) => s + (r.bandas || 0), 0);
+        const pend = filteredDB.filter((r) => r.estado === "pendiente").length;
+        const rej = filteredDB.filter((r) => r.estado === "rechazado").length;
+
+        document.getElementById("statsRow").innerHTML =
+          `<div class="scard"><div class="lbl">Total registros</div><div class="val">${tot}</div></div><div class="scard"><div class="lbl">Bandas autorizadas</div><div class="val g">${totBands}</div></div><div class="scard"><div class="lbl">Pendientes</div><div class="val y">${pend}</div></div><div class="scard"><div class="lbl">Rechazados</div><div class="val r">${rej}</div></div>`;
+
+        const tbody = document.getElementById("tBody");
+
+        if (!filteredDB.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="11" class="empty-td">No se encontraron registros en este periodo</td></tr>';
+          return;
+        }
+
+        const cmap = {
+          pendiente: "p",
+          autorizado: "a",
+          completado: "c",
+          rechazado: "r",
+        };
+        const clbl = {
+          pendiente: "Pendiente",
+          autorizado: "Autorizado",
+          completado: "Completado",
+          rechazado: "Rechazado",
+        };
+
+        tbody.innerHTML = [...filteredDB]
+          .reverse()
+          .map((r) => {
+            let authCell = "—";
+            if (r.auth_por) {
+              authCell =
+                esc(r.auth_por) +
+                '<br><span style="font-size:10px;color:#aaa">' +
+                fmtDT(r.auth_fecha) +
+                "</span>";
+              if (r.estado === "rechazado" && r.rechazo_motivo) {
+                authCell += `<br><span style="font-size:10px;color:#dc2626;display:block;margin-top:4px"><b>Motivo:</b> ${esc(r.rechazo_motivo)}</span>`;
+              }
+            }
+
+            return `<tr><td>${esc(r.fecha)}</td><td>${esc(r.operador)}</td><td>${esc(r.nodriza)}</td><td>${esc(r.descripcion || "—")}</td><td><strong>${r.bandas}</strong></td><td><span class="chip ${r.tipo_banda || "nueva"}">${tipoLabel[r.tipo_banda] || "—"}</span></td><td><span class="chip ${cmap[r.estado] || "p"}">${clbl[r.estado] || r.estado}</span></td><td>${r.entrega ? esc(r.entrega) : "—"}</td><td>${authCell}</td><td><div style="display:flex;gap:4px;"><div class="tthumb" onclick="openImg('${r.foto}')"><img src="${r.foto}"/></div>${r.foto_entregada ? `<div class="tthumb" onclick="openImg('${r.foto_entregada}')"><img src="${r.foto_entregada}"/></div>` : ""}</div></td><td>${r.firma ? `<div class="tthumb" onclick="openImg('${r.firma}')"><img src="${r.firma}"/></div>` : "—"}</td></tr>`;
+          })
+          .join("");
+      }
+
+      function openImg(src) {
+        document.getElementById("imgBig").src = src;
+        document.getElementById("imgOverlay").classList.add("open");
+      }
+      function closeImg() {
+        document.getElementById("imgOverlay").classList.remove("open");
+      }
+      function setToday() {
+        const d = new Date();
+        document.getElementById("f_fecha").value = new Date(
+          d.getTime() - d.getTimezoneOffset() * 60000,
+        )
+          .toISOString()
+          .split("T")[0];
+      }
+
+      window.logout = logout;
+      window.switchTab = switchTab;
+      window.openAuthType = openAuthType;
+      window.closeAuthType = closeAuthType;
+      window.confirmAuthorize = confirmAuthorize;
+      window.openReject = openReject;
+      window.closeReject = closeReject;
+      window.confirmReject = confirmReject;
+
+      window.toggleOpRange = toggleOpRange;
+      window.toggleAdmRange = toggleAdmRange;
+      window.renderSolicitudes = renderSolicitudes;
+      window.renderHistorial = renderHistorial;
+
+      window.nextCompleteStep = nextCompleteStep;
+      window.prevCompleteStep = prevCompleteStep;
+      window.openCompleteDelivery = openCompleteDelivery;
+      window.closeCompleteDelivery = closeCompleteDelivery;
+      window.saveCompleteDelivery = saveCompleteDelivery;
+
+      window.openMov = openMov;
+      window.closeMov = closeMov;
+      window.selMovType = selMovType;
+      window.saveMov = saveMov;
+      window.checkMovRequirements = checkMovRequirements;
+
+      window.clearSig = clearSig;
+      window.openImg = openImg;
+      window.closeImg = closeImg;
+
+      renderTabs();
+      setToday();
+    </script>
+  </body>
 </html>
-
-haz que el administrador pueda crear usuarios tanto administradores como opeadores, dale ese plus 
